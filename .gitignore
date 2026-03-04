@@ -39,3 +39,6 @@ staticfiles/
 # Python cache
 *.pyo
 *.pyd
+*.bak
+*.dat
+*.dir
