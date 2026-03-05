@@ -10,7 +10,7 @@ def send_push_notification(user, subject, snippet, candidate_id):
             {"action": "add", "title": "✅ Добавить"},
             {"action": "ignore", "title": "❌ Игнорировать"}
         ],
-        "url": "/subscriptions/detected/"
+        # ТЕПЕРЬ ССЫЛКА ВЕДЕТ НА КОНКРЕТНОЕ ПИСЬМО
+        "url": f"/auth/detected/{candidate_id}/"
     }
-    # Передаем словарь payload напрямую!
     send_user_notification(user=user, payload=payload, ttl=1000)

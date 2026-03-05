@@ -12,5 +12,6 @@ urlpatterns = [
     path("forgot-password/verify/", views.forgot_verify_view, name="forgot_verify"),
     path("reset-password/", views.reset_password_view, name="reset_password"),
     path("profile/", views.profile_view, name="profile"),
-    path("email/connect/yandex/", views.connect_yandex_email, name="connect_yandex"),
+    path("email/connect/", views.connect_email, name="connect_email"),
+    path("detected/<int:candidate_id>/", views.add_from_candidate, name="add_from_candidate"),
 ]

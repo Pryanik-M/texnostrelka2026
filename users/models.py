@@ -1,10 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import User
+from .crypto_utils import decrypt_password
 
 
 class EmailAccount(models.Model):
     PROVIDERS = [
         ("yandex", "Yandex"),
+        ("gmail", "Gmail"),
+        ("mailru", "Mail.ru"),
     ]
     user = models.ForeignKey(
         User,
@@ -23,6 +26,9 @@ class EmailAccount(models.Model):
     def __str__(self):
         return f"{self.email} ({self.user.username})"
 
+    def get_decrypted_password(self):
+        return decrypt_password(self.password)
+
 
 class EmailSubscriptionCandidate(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -34,5 +40,6 @@ class EmailSubscriptionCandidate(models.Model):
         max_length=10,
         blank=True
     )
+    snippet = models.TextField(blank=True, null=True)
     confidence = models.IntegerField(default=0)
     is_processed = models.BooleanField(default=False)

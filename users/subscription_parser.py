@@ -84,7 +84,7 @@ def get_body_snippet(msg):
     return (body[:50] + '...') if len(body) > 50 else body
 
 
-def parse_subscription_email(raw_email):
+def parse_subscription_email(raw_email, user):
     msg = email.message_from_bytes(raw_email)
     subject = decode_subject(msg.get("Subject", ""))
     sender_raw = msg.get("From", "")

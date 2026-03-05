@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 from django.conf import settings
 from .forms import LoginForm, RegistrationForm, ForgotPasswordForm, ResetPasswordForm, VerifyForm
@@ -8,8 +9,11 @@ from django.contrib.auth.decorators import login_required
 from .models import EmailAccount, EmailSubscriptionCandidate
 # from .email_scanner import scan_yandex_email
 from django.utils import timezone
+from .crypto_utils import encrypt_password
 from main.models import Subscription
 import time
+from .email_providers import IMAP_SERVERS, detect_provider
+from .email_validator import test_imap_connection
 from .utils import *
 
 
@@ -142,28 +146,79 @@ def profile_view(request):
 
 
 @login_required
-def connect_yandex_email(request):
-    if request.method == "POST":
-        email_address = request.POST.get("email")
-        password = request.POST.get("password")
-        EmailAccount.objects.create(
-            user=request.user,
-            email=email_address,
-            password=password,
-            provider="yandex"
+def connect_email(request):
+
+    provider = detect_provider(request.user.email)
+
+    if not provider:
+        return render(
+            request,
+            "accounts/connect_email.html",
+            {"error": "Провайдер почты не поддерживается"}
         )
-        # emails = scan_yandex_email(email_address, password)
-        # for e in emails:
-        #     EmailSubscriptionCandidate.objects.create(
-        #         user=request.user,
-        #         subject=e["subject"],
-        #         sender=e["sender"],
-        #         detected_service=e["sender"],
-        #         message_id=e.get("message_id")
-        #     )
-        if EmailAccount.objects.filter(user=request.user, is_active=True).exists():
-            return redirect("auth:profile")
-    return render(request, "accounts/connect_yandex.html")
+
+    if request.method == "POST":
+
+        password = request.POST.get("password")
+        email_address = request.user.email
+
+        if not test_imap_connection(email_address, password, provider):
+
+            return render(
+                request,
+                "accounts/connect_email.html",
+                {"error": "Не удалось подключиться к почте"}
+            )
+
+        encrypted_password = encrypt_password(password)
+
+        account = EmailAccount.objects.filter(user=request.user).first()
+
+        if account:
+            account.email = request.user.email
+            account.provider = provider
+            account.password = encrypted_password
+            account.is_active = True
+            account.save()
+        else:
+            EmailAccount.objects.create(
+                user=request.user,
+                email=request.user.email,
+                provider=provider,
+                password=encrypted_password,
+            )
+
+        return redirect("auth:profile")
+
+    return render(
+        request,
+        "accounts/connect_email.html",
+        {"provider": provider}
+    )
+
+
+@login_required
+def add_from_candidate(request, candidate_id):
+    # Ищем кандидата, проверяя владельца
+    candidate = get_object_or_404(EmailSubscriptionCandidate, id=candidate_id, user=request.user)
+
+    if request.method == "POST":
+        # Создаем реальную подписку на основе данных кандидата
+        Subscription.objects.create(
+            user=request.user,
+            title=request.POST.get("title"),
+            price=request.POST.get("price", 0),
+            # добавь другие поля своей модели Subscription
+        )
+        candidate.is_processed = True
+        candidate.save()
+        return redirect("main:home")
+
+    # Предзаполняем данные для шаблона
+    return render(request, "main/add_subscription.html", {
+        "candidate": candidate,
+        "initial_title": candidate.detected_service,
+    })
 
 
 def logout_view(request):
