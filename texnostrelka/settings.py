@@ -137,3 +137,5 @@ WEBPUSH_SETTINGS = {
     "VAPID_ADMIN_EMAIL": "admin@example.com",
     "SERVICE_WORKER_PATH": "/static/service-worker.js"
 }
+
+WEBPUSH_SERVICE_WORKER_PATH = 'webpush/service-worker.js'

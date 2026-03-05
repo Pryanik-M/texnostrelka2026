@@ -32,6 +32,23 @@ def subscriptions_list(request):
 
 @login_required
 def add_subscription(request):
+
+    candidate_id = request.GET.get("candidate")
+
+    initial_data = {}
+
+    if candidate_id:
+        try:
+            candidate = EmailSubscriptionCandidate.objects.get(
+                id=candidate_id,
+                user=request.user
+            )
+            initial_data = {
+                "name": candidate.detected_service,
+                "description": candidate.subject,
+            }
+        except EmailSubscriptionCandidate.DoesNotExist:
+            pass
     if request.method == "POST":
         form = SubscriptionForm(request.POST)
         if form.is_valid():
@@ -39,14 +56,13 @@ def add_subscription(request):
             subscription.user = request.user
             subscription.save()
             return redirect("main:subscriptions")
-        else:
-            print(form.errors)   # покажет ошибки в терминале
     else:
-        form = SubscriptionForm()
+        form = SubscriptionForm(initial=initial_data)
     return render(
         request,
         "main/add_subscription.html",
-        {"form": form})
+        {"form": form}
+    )
 
 
 @login_required

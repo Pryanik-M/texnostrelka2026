@@ -2,7 +2,7 @@ import email
 import time
 from imapclient import IMAPClient
 from django.contrib.auth import get_user_model
-from users.models import EmailAccount
+from users.models import EmailAccount, EmailSubscriptionCandidate
 from users.subscription_parser import parse_subscription_email
 from users.notifications import send_push_notification
 
@@ -10,9 +10,19 @@ from users.notifications import send_push_notification
 def process_email(raw_email, user):
     result = parse_subscription_email(raw_email)
     if result:
+        # Передаем и тему (subject), и кусочек текста (snippet)
+        candidate = EmailSubscriptionCandidate.objects.create(
+            user=user,
+            subject=result["subject"],
+            sender=result["sender"],
+            detected_service=result["service"]
+        )
+
         send_push_notification(
             user,
-            result["subject"]
+            result["subject"],
+            result.get("snippet", "Текст письма пустой"),
+            candidate.id
         )
         print("Subscription detected:", result["subject"])
 

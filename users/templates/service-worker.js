@@ -17,13 +17,38 @@ self.addEventListener("push", function(event) {
     const options = {
         body: data.body || "У вас новое уведомление",
         icon: data.icon || "/static/icons/subscription.png",
-        actions: data.actions || [], // Чтобы появились кнопки
+        actions: data.actions || [],
         data: {
-            url: data.url || "/"
+            candidate_id: data.candidate_id
         }
     };
 
     event.waitUntil(
         self.registration.showNotification(data.title || "Внимание", options)
     );
+});
+
+
+
+
+self.addEventListener("notificationclick", function(event) {
+
+    event.notification.close();
+
+    const data = event.notification.data || {};
+    const candidate_id = data.candidate_id;
+
+    if (event.action === "add") {
+
+        clients.openWindow("/subscriptions/add/?candidate=" + candidate_id);
+
+    } else if (event.action === "ignore") {
+
+        clients.openWindow("/subscriptions/ignore/" + candidate_id + "/");
+
+    } else {
+
+        clients.openWindow("/subscriptions/detected/");
+    }
+
 });
