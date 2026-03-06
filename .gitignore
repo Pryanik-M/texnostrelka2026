@@ -1,0 +1,64 @@
+# OSX
+#
+.DS_Store
+
+# Android/IntelliJ
+#
+build/
+.idea
+.gradle
+local.properties
+*.iml
+*.hprof
+.cxx/
+
+# Bundle artifacts
+*.jsbundle
+
+# --- Системные файлы ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.log
+
+# --- Зависимости (САМОЕ ВАЖНОЕ) ---
+node_modules/
+**/node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# --- Expo и мобильная разработка (папка mobile) ---
+mobile/.expo/
+mobile/dist/
+mobile/web-build/
+mobile/android/
+mobile/ios/
+mobile/dev-client-builds/
+
+# --- Временные файлы сборки ---
+build/
+bin/
+obj/
+out/
+.gradle/
+*.class
+*.dex
+*.apk
+*.aar
+*.bundle
+
+# --- Секреты (API ключи, пароли) ---
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.jks
+*.keystore
+
+# --- Прочее ---
+texnostrelka/node_modules/
