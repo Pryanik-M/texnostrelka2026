@@ -2,361 +2,115 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Аналитика подписок</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/analytics.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-<h1>Аналитика подписок</h1>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<style>
-
-.dashboard {
-    max-width: 1200px;
-}
-
-.block {
-    margin-bottom: 50px;
-}
-
-.chart-container {
-    width: 450px;
-    height: 300px;
-}
-
-.row {
-    display: flex;
-    gap: 40px;
-    align-items: center;
-}
-
-</style>
-
 <div class="dashboard">
+    <h1>Аналитика подписок</h1>
 
+    <div class="block">
+        <h2>Общая информация</h2>
+        <p><b>Самая дорогая:</b> {% if most_expensive %}{{ most_expensive.name }} — {{ most_expensive.price }} {{ most_expensive.currency }}{% endif %}</p>
+        <p><b>Самая дешёвая:</b> {% if cheapest %}{{ cheapest.name }} — {{ cheapest.price }} {{ cheapest.currency }}{% endif %}</p>
+    </div>
 
-<!-- ОБЩАЯ ИНФОРМАЦИЯ -->
+    <div class="block">
+        <h2>Подписки по категориям</h2>
+        <div class="row">
+            <div style="min-width:250px">
+                <h3>Текстовая статистика</h3>
+                <ul>
+                    {% if subscriptions_by_category %}
+                        {% for item in subscriptions_by_category %}
+                        <li><b>{{ item.category__name|default:"Без категории" }}</b> — {{ item.count }} подписок</li>
+                        {% endfor %}
+                    {% else %}
+                        <li>Подписок пока нет</li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="chart-container">
+                <h3>Диаграмма</h3>
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
 
-<div class="block">
+    <div class="block">
+        <h2>Расходы по категориям</h2>
+        <div class="row">
+            <div style="min-width:250px">
+                <h3>Текстовая статистика</h3>
+                <ul>
+                    {% if spending_by_category %}
+                        {% for item in spending_by_category %}
+                        <li><b>{{ item.category__name|default:"Без категории" }}</b> — {{ item.total }} ₽</li>
+                        {% endfor %}
+                    {% else %}
+                        <li>Расходов пока нет</li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="chart-container">
+                <h3>Диаграмма</h3>
+                <canvas id="spendingChart"></canvas>
+            </div>
+        </div>
+    </div>
 
-<h2>Общая информация</h2>
+    <div class="block">
+        <h2>Расходы по месяца</h2>
+        <div class="row">
+            <div style="min-width:250px">
+                <h3>Текстовая статистика</h3>
+                <ul>
+                    {% for item in spending_by_month %}
+                    <li>{{ item.month }} — {{ item.total }} ₽</li>
+                    {% empty %}
+                    <li>Расходов пока нет</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="chart-container">
+                <h3>Диаграмма</h3>
+                <canvas id="monthChart"></canvas>
+            </div>
+        </div>
+    </div>
 
-<p>
-<b>Самая дорогая:</b>
-{% if most_expensive %}
-{{ most_expensive.name }} — {{ most_expensive.price }} {{ most_expensive.currency }}
-{% endif %}
-</p>
-
-<p>
-<b>Самая дешёвая:</b>
-{% if cheapest %}
-{{ cheapest.name }} — {{ cheapest.price }} {{ cheapest.currency }}
-{% endif %}
-</p>
-
+    <div class="block">
+        <h2>Статусы подписок</h2>
+        <div class="row">
+            <div>
+                <ul>
+                    {% for item in status_stats %}
+                    <li>{{ item.status }} — {{ item.count }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="chart-container">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+    </div>
 </div>
-
-
-
-<!-- КАТЕГОРИИ -->
-
-<div class="block">
-
-<h2>Подписки по категориям</h2>
-
-<div class="row">
-
-<div style="min-width:250px">
-
-<h3>Текстовая статистика</h3>
-
-<ul>
-
-{% if subscriptions_by_category %}
-
-{% for item in subscriptions_by_category %}
-
-<li>
-<b>{{ item.category__name|default:"Без категории" }}</b>
-—
-{{ item.count }} подписок
-</li>
-
-{% endfor %}
-
-{% else %}
-
-<li>Подписок пока нет</li>
-
-{% endif %}
-
-</ul>
-
-</div>
-
-
-<div class="chart-container">
-
-<h3>Диаграмма</h3>
-
-<canvas id="categoryChart"></canvas>
-
-</div>
-
-</div>
-
-</div>
-
-
-
-<!-- РАСХОДЫ -->
-
-<div class="block">
-
-<h2>Расходы по категориям</h2>
-
-<div class="row">
-
-<div style="min-width:250px">
-
-<h3>Текстовая статистика</h3>
-
-<ul>
-
-{% if spending_by_category %}
-
-{% for item in spending_by_category %}
-
-<li>
-<b>{{ item.category__name|default:"Без категории" }}</b>
-—
-{{ item.total }} ₽
-</li>
-
-{% endfor %}
-
-{% else %}
-
-<li>Расходов пока нет</li>
-
-{% endif %}
-
-</ul>
-
-</div>
-
-
-<div class="chart-container">
-
-<h3>Диаграмма</h3>
-
-<canvas id="spendingChart"></canvas>
-
-</div>
-
-</div>
-
-</div>
-
-
-<div class="block">
-
-<h2>Расходы по месяцам</h2>
-
-<div class="row">
-
-<div style="min-width:250px">
-
-<h3>Текстовая статистика</h3>
-
-<ul>
-
-{% for item in spending_by_month %}
-
-<li>
-{{ item.month }} — {{ item.total }} ₽
-</li>
-
-{% empty %}
-
-<li>Расходов пока нет</li>
-
-{% endfor %}
-
-</ul>
-
-</div>
-
-
-<div class="chart-container">
-
-<h3>Диаграмма</h3>
-
-<canvas id="monthChart"></canvas>
-
-</div>
-
-</div>
-
-</div>
-
-
-
-<!-- СТАТУСЫ -->
-
-<div class="block">
-
-<h2>Статусы подписок</h2>
-
-<div class="row">
-
-<div>
-
-<ul>
-{% for item in status_stats %}
-<li>
-{{ item.status }} — {{ item.count }}
-</li>
-{% endfor %}
-</ul>
-
-</div>
-
-<div class="chart-container">
-<canvas id="statusChart"></canvas>
-</div>
-
-</div>
-
-</div>
-
-
-
-</div>
-
 
 <script>
-const categoryLabels = {{ category_labels|safe }};
-const categoryCounts = {{ category_counts|safe }};
-const spendingLabels = {{ spending_labels|safe }};
-const spendingValues = {{ spending_values|safe }};
-
-const statusLabels = [{% for s in status_stats %}"{{ s.status }}", {% endfor %}];
-
-const statusCounts = [
-{% for s in status_stats %}
-{{ s.count }},
-{% endfor %}
-];
-
-
-
-// Категории
-
-new Chart(document.getElementById("categoryChart"), {
-
-type: "pie",
-
-data: {
-
-labels: categoryLabels,
-
-datasets: [{
-data: categoryCounts,
-backgroundColor: ["#ff6384","#36a2eb","#ffce56","#4bc0c0","#9966ff"]
-}]
-
-},
-
-options:{
-responsive:true,
-maintainAspectRatio:false
-}
-
-});
-
-
-
-// Расходы
-
-new Chart(document.getElementById("spendingChart"), {
-
-type: "bar",
-
-data: {
-
-labels: spendingLabels,
-
-datasets: [{
-label:"Расходы",
-data: spendingValues,
-backgroundColor:"#36a2eb"
-}]
-
-},
-
-options:{
-responsive:true,
-maintainAspectRatio:false
-}
-
-});
-
-
-
-// Статусы
-
-new Chart(document.getElementById("statusChart"), {
-
-type: "doughnut",
-
-data: {
-
-labels: statusLabels,
-
-datasets: [{
-data: statusCounts,
-backgroundColor:["#4CAF50","#FF9800","#F44336"]
-}]
-
-},
-
-options:{
-responsive:true,
-maintainAspectRatio:false
-}
-
-});
-
-
-const monthLabels = {{ month_labels|safe }};
-const monthValues = {{ month_values|safe }};
-
-new Chart(document.getElementById("monthChart"), {
-
-type: "line",
-
-data: {
-
-labels: monthLabels,
-
-datasets: [{
-label: "Расходы по месяцам",
-data: monthValues,
-borderColor: "#4bc0c0",
-fill: false
-}]
-
-},
-
-options:{
-responsive:true,
-maintainAspectRatio:false
-}
-
-});
-
+    window.categoryLabels = {{ category_labels|safe }};
+    window.categoryCounts = {{ category_counts|safe }};
+    window.spendingLabels = {{ spending_labels|safe }};
+    window.spendingValues = {{ spending_values|safe }};
+    window.monthLabels = {{ month_labels|safe }};
+    window.monthValues = {{ month_values|safe }};
+    window.statusStats = [
+        {% for s in status_stats %}
+        { "status": "{{ s.status }}", "count": {{ s.count }} },
+        {% endfor %}
+    ];
 </script>
+<script src="{% static 'js/analytics.js' %}"></script>
 </body>
 </html>

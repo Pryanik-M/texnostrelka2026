@@ -2,233 +2,59 @@
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/forecast.css' %}">
 </head>
 
+<body>
 <h1>Прогноз расходов</h1>
 
 <h2>Ближайшие списания (7 дней)</h2>
-
 <ul>
-{% for sub in upcoming_subscriptions %}
-
-<li>
-
-<b>{{ sub.name }}</b>
-—
-{{ sub.price }} {{ sub.currency }}
-
-<br>
-
-Дата списания:
-{{ sub.next_payment_date }}
-
-</li>
-
-{% empty %}
-
-<p>Ближайших списаний нет</p>
-
-{% endfor %}
+    {% for sub in upcoming_subscriptions %}
+    <li>
+        <b>{{ sub.name }}</b> — {{ sub.price }} {{ sub.currency }}
+        <br>Дата списания: {{ sub.next_payment_date }}
+    </li>
+    {% empty %}
+    <p>Ближайших списаний нет</p>
+    {% endfor %}
 </ul>
-
-
-<h3>
-Всего спишется за 7 дней:
-{{ total_week_spending }}
-</h3>
-
+<h3>Всего спишется за 7 дней: {{ total_week_spending }}</h3>
 
 <hr>
-
 <h2>Прогноз расходов на месяц</h2>
-
-<h3>
-Примерные расходы в месяц:
-{{ monthly_forecast }}
-</h3>
+<h3>Примерные расходы в месяц: {{ monthly_forecast }}</h3>
 
 <hr>
-
 <h2>Календарь списаний</h2>
-
 <div id="calendar"></div>
-
 <h3 id="selected-date"></h3>
-
 <ul id="payments-list"></ul>
 
-<style>
-
-#calendar{
-    width: 40%;
-    max-width:700px;
-    margin-top:20px;
-}
-
-</style>
-
-
 <hr>
-
 <h2>Прогноз расходов на год</h2>
-
-<h3>
-Примерные расходы за год:
-{{ yearly_forecast }}
-</h3>
-
+<h3>Примерные расходы за год: {{ yearly_forecast }}</h3>
 <canvas id="yearChart" width="600" height="300"></canvas>
 
-
 <hr>
-
 <h2>Рекомендации по экономии</h2>
-
 {% if most_expensive_subscription %}
-
-<p>
-💰 Самая дорогая подписка:
-<b>{{ most_expensive_subscription.name }}</b>
-—
-{{ most_expensive_subscription.price }}
-{{ most_expensive_subscription.currency }}
-</p>
-
+    <p>💰 Самая дорогая подписка: <b>{{ most_expensive_subscription.name }}</b> — {{ most_expensive_subscription.price }} {{ most_expensive_subscription.currency }}</p>
 {% endif %}
 
 {% if top_category %}
-
-<p>
-📊 Больше всего расходов в категории:
-<b>{{ top_category }}</b>
-</p>
-
+    <p>📊 Больше всего расходов в категории: <b>{{ top_category }}</b></p>
 {% endif %}
 
 {% if monthly_forecast > 50 %}
-
-<p>
-⚠️ Вы тратите более <b>50</b> в месяц на подписки.
-Возможно стоит пересмотреть некоторые из них.
-</p>
-
+    <p>⚠️ Вы тратите более <b>50</b> в месяц на подписки. Возможно, стоит пересмотреть некоторые из них.</p>
 {% endif %}
 
-
-
-
-
-
 <script>
-
-document.addEventListener('DOMContentLoaded', function() {
-
-    const calendarData = {{ calendar_data|safe }};
-
-    const events = [];
-
-    for (const date in calendarData){
-
-        calendarData[date].forEach(item => {
-
-            events.push({
-                title: item.name + " — " + item.price + " " + item.currency,
-                start: date
-            });
-
-        });
-
-    }
-
-    const calendarEl = document.getElementById('calendar');
-
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-
-        initialView: 'dayGridMonth',
-
-        locale: 'ru',
-
-        events: events,
-
-        dateClick: function(info){
-
-            const date = info.dateStr;
-
-            const list = document.getElementById("payments-list");
-
-            const title = document.getElementById("selected-date");
-
-            list.innerHTML = "";
-
-            title.innerText = "Списания на " + date;
-
-            if(calendarData[date]){
-
-                calendarData[date].forEach(item => {
-
-                    const li = document.createElement("li");
-
-                    li.innerText =
-                        item.name + " — " +
-                        item.price + " " +
-                        item.currency;
-
-                    list.appendChild(li);
-
-                });
-
-            }else{
-
-                const li = document.createElement("li");
-
-                li.innerText = "Списаний нет";
-
-                list.appendChild(li);
-
-            }
-
-        }
-
-    });
-
-    calendar.render();
-
-});
-
+    window.calendarData = {{ calendar_data|safe }};
+    window.monthLabels = {{ monthly_chart_labels|safe }};
+    window.monthValues = {{ monthly_chart_values|safe }};
 </script>
-<script>
-
-const monthLabels = {{ monthly_chart_labels|safe }};
-const monthValues = {{ monthly_chart_values|safe }};
-
-new Chart(document.getElementById("yearChart"), {
-
-type: "line",
-
-data: {
-
-labels: monthLabels,
-
-datasets: [{
-
-label: "Прогноз расходов",
-
-data: monthValues,
-
-borderColor: "#6C5CE7",
-
-backgroundColor: "rgba(108,92,231,0.1)",
-
-fill: true
-
-}]
-
-},
-
-options:{
-responsive:true
-}
-
-});
-
-</script>
+<script src="{% static 'js/forecast.js' %}"></script>
+</body>
