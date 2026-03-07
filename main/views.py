@@ -5,7 +5,6 @@ from django.db.models.functions import ExtractMonth
 from django.db.models import Count, Sum
 from .models import Subscription
 from .forms import SubscriptionForm
-from django.utils import timezone
 from datetime import timedelta
 from django.utils import timezone
 import json
@@ -100,9 +99,6 @@ def analytics_view(request):
     })
 
 
-
-
-
 @login_required
 def forecast_view(request):
     subscriptions = Subscription.objects.filter(
@@ -167,8 +163,6 @@ def forecast_view(request):
             category_spending[category_name] += float(sub.price)
         if category_spending:
             top_category = max(category_spending, key=category_spending.get)
-
-
     return render(
         request,
         "main/forecast.html",
@@ -198,33 +192,25 @@ def subscriptions_list(request):
 
 @login_required
 def add_subscription(request):
-
     edit_id = request.GET.get("edit_id")
     edit_sub = None
-
     if edit_id:
         edit_sub = get_object_or_404(Subscription, id=edit_id, user=request.user)
-
     if request.method == "POST":
-
         if edit_sub:
             form = SubscriptionForm(request.POST, instance=edit_sub)
         else:
             form = SubscriptionForm(request.POST)
-
         if form.is_valid():
             subscription = form.save(commit=False)
             subscription.user = request.user
             subscription.save()
-
             return redirect("main:subscriptions")
-
     else:
         if edit_sub:
             form = SubscriptionForm(instance=edit_sub)
         else:
             form = SubscriptionForm()
-
     return render(
         request,
         "main/add_subscription.html",
@@ -233,22 +219,6 @@ def add_subscription(request):
             "edit_sub": edit_sub
         }
     )
-
-
-@login_required
-def edit_subscription(request, sub_id):
-    # Ищем подписку именно этого пользователя
-    subscription = get_object_or_404(Subscription, id=sub_id, user=request.user)
-
-    if request.method == "POST":
-        subscription.name = request.POST.get("name")
-        subscription.price = request.POST.get("price")
-        subscription.next_payment_date = request.POST.get("next_payment_date")
-        # Добавь другие поля, если они есть (например, billing_period)
-        subscription.save()
-        return redirect("main:home")  # или на твой список подписок
-
-    return render(request, "main/edit_subscription.html", {"subscription": subscription})
 
 
 @login_required
