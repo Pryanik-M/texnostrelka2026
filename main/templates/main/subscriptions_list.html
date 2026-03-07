@@ -10,6 +10,11 @@
 {{ sub.price }} {{ sub.currency }}
 
 <br>
+    {% if sub.service_url %}
+<a href="{{ sub.service_url }}" target="_blank" class="btn-open">
+Открыть сервис
+</a>
+{% endif %}
 
     <div class="subscription-actions">
     <a href="{% url 'main:add_subscription' %}?edit_id={{ sub.id }}" class="btn-edit">
