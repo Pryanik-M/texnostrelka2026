@@ -12,6 +12,7 @@ from main.models import Subscription
 from .email_providers import detect_provider
 from .email_validator import test_imap_connection
 from .utils import generate_2fa_code, hash_code
+from django.contrib import messages
 
 
 def login_view(request):
@@ -144,26 +145,28 @@ def profile_view(request):
 
 @login_required
 def connect_email(request):
+
     provider = detect_provider(request.user.email)
+
     if not provider:
-        return render(
-            request,
-            "accounts/connect_email.html",
-            {"error": "Провайдер почты не поддерживается"}
-        )
+        messages.error(request, "Провайдер почты не поддерживается")
+        return redirect("auth:profile")
+
     if request.method == "POST":
+
         password = request.POST.get("password")
         email_address = request.user.email
+
         if not test_imap_connection(email_address, password, provider):
-            return render(
-                request,
-                "accounts/connect_email.html",
-                {"error": "Не удалось подключиться к почте"}
-            )
+            messages.error(request, "Не удалось подключиться к почте")
+            return redirect("auth:profile")
+
         encrypted_password = encrypt_password(password)
+
         account = EmailAccount.objects.filter(user=request.user).first()
+
         if account:
-            account.email = request.user.email
+            account.email = email_address
             account.provider = provider
             account.password = encrypted_password
             account.is_active = True
@@ -171,16 +174,14 @@ def connect_email(request):
         else:
             EmailAccount.objects.create(
                 user=request.user,
-                email=request.user.email,
+                email=email_address,
                 provider=provider,
-                password=encrypted_password,
+                password=encrypted_password
             )
-        return redirect("auth:profile")
-    return render(
-        request,
-        "accounts/connect_email.html",
-        {"provider": provider}
-    )
+
+        messages.success(request, "Почта успешно подключена")
+
+    return redirect("auth:profile")
 
 
 @login_required

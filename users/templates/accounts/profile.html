@@ -1,6 +1,10 @@
-
+{% load static %}
 {% load webpush_notifications %}
 {% webpush_header %}
+
+<head>
+    <link rel="stylesheet" href="{% static 'css/profile.css' %}">
+</head>
 <h3>Подписки</h3>
 
 <a href="{% url 'main:add_subscription' %}">
@@ -70,6 +74,11 @@
 <li>Создайте новый пароль для приложения</li>
 <li>Скопируйте пароль и вставьте его ниже</li>
 </ol>
+    {% if messages %}
+    {% for message in messages %}
+        <p class="error-email" style="color: red">{{ message }}</p>
+    {% endfor %}
+{% endif %}
 
 <form method="post" action="{% url 'auth:connect_email' %}">
 {% csrf_token %}
@@ -88,52 +97,4 @@
 
 </div>
 </div>
-
-<style>
-
-.modal {
-display:none;
-position:fixed;
-z-index:1000;
-left:0;
-top:0;
-width:100%;
-height:100%;
-background-color:rgba(0,0,0,0.5);
-}
-
-.modal-content {
-background:white;
-margin:10% auto;
-padding:30px;
-width:400px;
-border-radius:10px;
-}
-
-.close {
-float:right;
-font-size:24px;
-cursor:pointer;
-}
-
-</style>
-
-
-<script>
-
-function openEmailModal(){
-document.getElementById("emailModal").style.display="block";
-}
-
-function closeEmailModal(){
-document.getElementById("emailModal").style.display="none";
-}
-
-window.onclick = function(event){
-let modal = document.getElementById("emailModal");
-if(event.target == modal){
-modal.style.display="none";
-}
-}
-
-</script>
+<script src="{% static 'js/profile.js' %}"></script>
