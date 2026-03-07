@@ -1,11 +1,12 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from users.models import EmailAccount, EmailSubscriptionCandidate
 from django.db.models.functions import ExtractMonth
 from django.db.models import Count, Sum
-# from users.email_scanner import scan_yandex_email
 from .models import Subscription
 from .forms import SubscriptionForm
+from django.utils import timezone
+from datetime import timedelta
 from django.utils import timezone
 import json
 
@@ -99,8 +100,90 @@ def analytics_view(request):
     })
 
 
+
+
+
+@login_required
 def forecast_view(request):
-    return render(request, "main/forecast.html")
+    subscriptions = Subscription.objects.filter(
+        user=request.user,
+        status="active"
+    )
+    today = timezone.now().date()
+    week_later = today + timedelta(days=7)
+    upcoming_subscriptions = subscriptions.filter(
+        next_payment_date__gte=today,
+        next_payment_date__lte=week_later
+    ).order_by("next_payment_date")
+    total_week_spending = sum(
+        sub.price for sub in upcoming_subscriptions
+    )
+    monthly_forecast = 0
+    for sub in subscriptions:
+        if sub.billing_period == "month":
+            monthly_forecast += sub.price
+        elif sub.billing_period == "week":
+            monthly_forecast += sub.price * 4
+        elif sub.billing_period == "day":
+            monthly_forecast += sub.price * 30
+        elif sub.billing_period == "year":
+            monthly_forecast += sub.price / 12
+    yearly_forecast = monthly_forecast * 12
+    monthly_chart_labels = [
+        "Янв", "Фев", "Мар", "Апр", "Май", "Июн",
+        "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"
+    ]
+    monthly_chart_values = [0] * 12
+    for sub in subscriptions:
+        month_index = sub.next_payment_date.month - 1
+        if sub.billing_period == "month":
+            monthly_chart_values[month_index] += float(sub.price)
+        elif sub.billing_period == "week":
+            monthly_chart_values[month_index] += float(sub.price) * 4
+        elif sub.billing_period == "day":
+            monthly_chart_values[month_index] += float(sub.price) * 30
+        elif sub.billing_period == "year":
+            monthly_chart_values[month_index] += float(sub.price)
+    calendar_data = {}
+    for sub in subscriptions:
+        date_str = sub.next_payment_date.strftime("%Y-%m-%d")
+        if date_str not in calendar_data:
+            calendar_data[date_str] = []
+        calendar_data[date_str].append({
+            "name": sub.name,
+            "price": float(sub.price),
+            "currency": sub.currency
+        })
+    # рекомендации
+    most_expensive_subscription = None
+    top_category = None
+    if subscriptions:
+        most_expensive_subscription = subscriptions.order_by("-price").first()
+        category_spending = {}
+        for sub in subscriptions:
+            category_name = sub.category.name if sub.category else "Без категории"
+            if category_name not in category_spending:
+                category_spending[category_name] = 0
+            category_spending[category_name] += float(sub.price)
+        if category_spending:
+            top_category = max(category_spending, key=category_spending.get)
+
+
+    return render(
+        request,
+        "main/forecast.html",
+        {
+            "upcoming_subscriptions": upcoming_subscriptions,
+            "total_week_spending": total_week_spending,
+            "monthly_forecast": monthly_forecast,
+            "calendar_data": json.dumps(calendar_data),
+            "yearly_forecast": yearly_forecast,
+            "monthly_chart_labels": json.dumps(monthly_chart_labels),
+            "monthly_chart_values": json.dumps(monthly_chart_values),
+            "most_expensive_subscription": most_expensive_subscription,
+            "top_category": top_category,
+        }
+    )
 
 
 @login_required
@@ -116,36 +199,64 @@ def subscriptions_list(request):
 @login_required
 def add_subscription(request):
 
-    candidate_id = request.GET.get("candidate")
+    edit_id = request.GET.get("edit_id")
+    edit_sub = None
 
-    initial_data = {}
+    if edit_id:
+        edit_sub = get_object_or_404(Subscription, id=edit_id, user=request.user)
 
-    if candidate_id:
-        try:
-            candidate = EmailSubscriptionCandidate.objects.get(
-                id=candidate_id,
-                user=request.user
-            )
-            initial_data = {
-                "name": candidate.detected_service,
-                "description": candidate.subject,
-            }
-        except EmailSubscriptionCandidate.DoesNotExist:
-            pass
     if request.method == "POST":
-        form = SubscriptionForm(request.POST)
+
+        if edit_sub:
+            form = SubscriptionForm(request.POST, instance=edit_sub)
+        else:
+            form = SubscriptionForm(request.POST)
+
         if form.is_valid():
             subscription = form.save(commit=False)
             subscription.user = request.user
             subscription.save()
+
             return redirect("main:subscriptions")
+
     else:
-        form = SubscriptionForm(initial=initial_data)
+        if edit_sub:
+            form = SubscriptionForm(instance=edit_sub)
+        else:
+            form = SubscriptionForm()
+
     return render(
         request,
         "main/add_subscription.html",
-        {"form": form}
+        {
+            "form": form,
+            "edit_sub": edit_sub
+        }
     )
+
+
+@login_required
+def edit_subscription(request, sub_id):
+    # Ищем подписку именно этого пользователя
+    subscription = get_object_or_404(Subscription, id=sub_id, user=request.user)
+
+    if request.method == "POST":
+        subscription.name = request.POST.get("name")
+        subscription.price = request.POST.get("price")
+        subscription.next_payment_date = request.POST.get("next_payment_date")
+        # Добавь другие поля, если они есть (например, billing_period)
+        subscription.save()
+        return redirect("main:home")  # или на твой список подписок
+
+    return render(request, "main/edit_subscription.html", {"subscription": subscription})
+
+
+@login_required
+def delete_subscription(request, sub_id):
+    subscription = get_object_or_404(Subscription, id=sub_id, user=request.user)
+    if request.method == "POST":
+        subscription.delete()
+    return redirect("main:subscriptions")
 
 
 @login_required

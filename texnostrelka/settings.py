@@ -130,7 +130,6 @@ WEBPUSH_SETTINGS = {
     "VAPID_ADMIN_EMAIL": "admin@example.com",
     "SERVICE_WORKER_PATH": "/static/service-worker.js"
 }
-
 WEBPUSH_SERVICE_WORKER_PATH = 'webpush/service-worker.js'
 
 
@@ -141,8 +140,15 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULE = {
+
     'check-emails-every-30-seconds': {
         'task': 'users.tasks.check_all_emails',
         'schedule': 30.0,
     },
+
+    'check-subscriptions-every-minute': {
+        'task': 'users.tasks.check_subscription_notifications',
+        'schedule': 60.0,
+    },
+
 }

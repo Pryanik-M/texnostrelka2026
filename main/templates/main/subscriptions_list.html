@@ -11,8 +11,21 @@
 
 <br>
 
+    <div class="subscription-actions">
+    <a href="{% url 'main:add_subscription' %}?edit_id={{ sub.id }}" class="btn-edit">
+    Редактировать
+</a>
+
+    <form action="{% url 'main:delete_subscription' sub.id %}" method="POST" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-delete" onclick="return confirm('Удалить эту подписку?')">Удалить</button>
+    </form>
+</div>
+
 Следующее списание:
 {{ sub.next_payment_date }}
+
+
 
 </li>
 

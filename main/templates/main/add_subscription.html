@@ -7,36 +7,28 @@
 <body>
 <h2>Добавить подписку</h2>
 
+<h2>{% if edit_sub %}Редактировать{% else %}Добавить{% endif %} подписку</h2>
+
 <form method="post">
+    {% csrf_token %}
 
-{% csrf_token %}
+    {% if edit_sub %}
+        <input type="hidden" name="old_id" value="{{ edit_sub.id }}">
+    {% endif %}
 
-{% for field in form %}
+    {% for field in form %}
+    <div>
+        <label>{{ field.label }}</label><br>
+        {{ field }}
+        {% if field.errors %}
+            <p style="color:red">{{ field.errors }}</p>
+        {% endif %}
+    </div><br>
+    {% endfor %}
 
-<div>
-
-<label>{{ field.label }}</label>
-
-<br>
-
-{{ field }}
-
-{% if field.errors %}
-<p style="color:red">
-{{ field.errors }}
-</p>
-{% endif %}
-
-</div>
-
-<br>
-
-{% endfor %}
-
-<button type="submit">
-Добавить
-</button>
-
+    <button type="submit">
+        {% if edit_sub %}Сохранить изменения{% else %}Добавить{% endif %}
+    </button>
 </form>
 </body>
 </html>

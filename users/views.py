@@ -7,12 +7,9 @@ from django.conf import settings
 from .forms import LoginForm, RegistrationForm, ForgotPasswordForm, ResetPasswordForm, VerifyForm
 from django.contrib.auth.decorators import login_required
 from .models import EmailAccount, EmailSubscriptionCandidate
-# from .email_scanner import scan_yandex_email
-from django.utils import timezone
 from .crypto_utils import encrypt_password
 from main.models import Subscription
-import time
-from .email_providers import IMAP_SERVERS, detect_provider
+from .email_providers import detect_provider
 from .email_validator import test_imap_connection
 from .utils import *
 
@@ -147,33 +144,24 @@ def profile_view(request):
 
 @login_required
 def connect_email(request):
-
     provider = detect_provider(request.user.email)
-
     if not provider:
         return render(
             request,
             "accounts/connect_email.html",
             {"error": "Провайдер почты не поддерживается"}
         )
-
     if request.method == "POST":
-
         password = request.POST.get("password")
         email_address = request.user.email
-
         if not test_imap_connection(email_address, password, provider):
-
             return render(
                 request,
                 "accounts/connect_email.html",
                 {"error": "Не удалось подключиться к почте"}
             )
-
         encrypted_password = encrypt_password(password)
-
         account = EmailAccount.objects.filter(user=request.user).first()
-
         if account:
             account.email = request.user.email
             account.provider = provider
@@ -187,9 +175,7 @@ def connect_email(request):
                 provider=provider,
                 password=encrypted_password,
             )
-
         return redirect("auth:profile")
-
     return render(
         request,
         "accounts/connect_email.html",
@@ -201,7 +187,6 @@ def connect_email(request):
 def add_from_candidate(request, candidate_id):
     # Ищем кандидата, проверяя владельца
     candidate = get_object_or_404(EmailSubscriptionCandidate, id=candidate_id, user=request.user)
-
     if request.method == "POST":
         # Создаем реальную подписку на основе данных кандидата
         Subscription.objects.create(
@@ -213,7 +198,6 @@ def add_from_candidate(request, candidate_id):
         candidate.is_processed = True
         candidate.save()
         return redirect("main:home")
-
     # Предзаполняем данные для шаблона
     return render(request, "main/add_subscription.html", {
         "candidate": candidate,
