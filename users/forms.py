@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 import re
 
+
 class LoginForm(forms.Form):
     email = forms.EmailField(widget=forms.EmailInput(attrs={'placeholder': 'Email'}))
     password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Пароль'}))
@@ -12,6 +13,7 @@ class LoginForm(forms.Form):
         if not User.objects.filter(email=email).exists():
             raise ValidationError("Пользователь с таким Email не найден.")
         return email
+
 
 class RegistrationForm(forms.ModelForm):
     password = forms.CharField(
@@ -53,6 +55,7 @@ class RegistrationForm(forms.ModelForm):
             self.add_error('confirm_password', "Пароли не совпадают.")
         return cleaned_data
 
+
 class ForgotPasswordForm(forms.Form):
     email = forms.EmailField(widget=forms.EmailInput(attrs={'placeholder': 'Введите ваш Email'}))
 
@@ -61,6 +64,7 @@ class ForgotPasswordForm(forms.Form):
         if not User.objects.filter(email=email).exists():
             raise ValidationError("Пользователь с таким Email не найден.")
         return email
+
 
 class ResetPasswordForm(forms.Form):
     password = forms.CharField(widget=forms.PasswordInput(), min_length=8)
@@ -71,6 +75,7 @@ class ResetPasswordForm(forms.Form):
         if cleaned_data.get("password") != cleaned_data.get("confirm_password"):
             raise ValidationError("Пароли не совпадают.")
         return cleaned_data
+
 
 class VerifyForm(forms.Form):
     code = forms.CharField(

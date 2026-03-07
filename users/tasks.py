@@ -26,15 +26,12 @@ def check_single_account(account_id):
         server = IMAPClient(IMAP_SERVERS[account.provider], ssl=True)
         server.login(account.email, account.get_decrypted_password())
         server.select_folder("INBOX")
-
         messages = server.search(["UNSEEN"])
         if not messages:
             return f"No new emails for {account.email}"
-
         for uid, message_data in server.fetch(messages, ["RFC822"]).items():
             raw_email = message_data[b"RFC822"]
             result = parse_subscription_email(raw_email, account.user)  #
-
             if result:
                 candidate = EmailSubscriptionCandidate.objects.create(
                     user=account.user,
@@ -67,7 +64,6 @@ def check_subscription_notifications():
     for days in [1, 3]:
         target_date = today + timedelta(days=days)
         upcoming_subs = Subscription.objects.filter(next_payment_date=target_date)
-
         for sub in upcoming_subs:
             send_reminder_notification(
                 user=sub.user,

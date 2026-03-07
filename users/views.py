@@ -11,7 +11,7 @@ from .crypto_utils import encrypt_password
 from main.models import Subscription
 from .email_providers import detect_provider
 from .email_validator import test_imap_connection
-from .utils import *
+from .utils import generate_2fa_code, hash_code
 
 
 def login_view(request):
@@ -191,7 +191,7 @@ def add_from_candidate(request, candidate_id):
         # Создаем реальную подписку на основе данных кандидата
         Subscription.objects.create(
             user=request.user,
-            title=request.POST.get("title"),
+            title=request.POST.get("name"),
             price=request.POST.get("price", 0),
             # добавь другие поля своей модели Subscription
         )
