@@ -207,4 +207,4 @@ def add_from_candidate(request, candidate_id):
 
 def logout_view(request):
     logout(request)  # удаляет сессию пользователя
-    return redirect("auth:login")
+    return redirect("auth:home")
