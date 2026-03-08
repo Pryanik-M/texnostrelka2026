@@ -9,7 +9,7 @@ class EmailAccount(models.Model):
         ("gmail", "Gmail"),
         ("mailru", "Mail.ru"),
     ]
-    user = models.ForeignKey(
+    user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
         related_name="email_accounts"
