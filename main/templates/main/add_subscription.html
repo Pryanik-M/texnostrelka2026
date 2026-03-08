@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h2>Добавить подписку</h2>
+
+<h2>{% if edit_sub %}Редактировать{% else %}Добавить{% endif %} подписку</h2>
+
+<form method="post">
+    {% csrf_token %}
+
+    {% if edit_sub %}
+        <input type="hidden" name="old_id" value="{{ edit_sub.id }}">
+    {% endif %}
+
+    {% for field in form %}
+    <div>
+        <label>{{ field.label }}</label><br>
+        {{ field }}
+        {% if field.errors %}
+            <p style="color:red">{{ field.errors }}</p>
+        {% endif %}
+    </div><br>
+    {% endfor %}
+
+    <button type="submit">
+        {% if edit_sub %}Сохранить изменения{% else %}Добавить{% endif %}
+    </button>
+</form>
+</body>
+</html>

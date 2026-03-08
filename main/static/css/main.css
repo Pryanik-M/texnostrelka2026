@@ -1,0 +1,17 @@
+nav{
+background:#f4f4f4;
+padding:10px;
+margin-bottom:20px;
+}
+
+nav a{
+margin-right:15px;
+text-decoration:none;
+color:blue;
+}
+
+.candidate-card{
+border:1px solid #ccc;
+padding:10px;
+margin:10px;
+}

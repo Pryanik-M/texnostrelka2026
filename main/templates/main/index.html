@@ -1,0 +1,37 @@
+{% load webpush_notifications %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Главная страница</title>
+    <style>
+        nav { background: #f4f4f4; padding: 10px; margin-bottom: 20px; }
+        nav a { margin-right: 15px; text-decoration: none; color: blue; }
+    </style>
+    {% webpush_header %}
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+<body>
+
+<nav>
+    <a href="{% url 'main:home' %}">Главная</a>
+    <a href="{% url 'main:analytics' %}">Аналитика</a>
+    <a href="{% url 'main:forecast' %}">Прогноз</a>
+
+    {% if user.is_authenticated %}
+        <a href="{% url 'auth:profile' %}">Аккаунт</a> <a href="{% url 'auth:logout' %}">Выход</a> {% else %}
+        <a href="{% url 'auth:login' %}">Вход</a> <a href="{% url 'auth:register' %}">Регистрация</a> {% endif %}
+</nav>
+
+<h1>Добро пожаловать на главную страницу!</h1>
+
+{% if user.is_authenticated %}
+    <p>Привет, {{ user.username }}!</p>
+{% else %}
+    <p>Пожалуйста, войдите или зарегистрируйтесь.</p>
+{% endif %}
+
+</body>
+</html>

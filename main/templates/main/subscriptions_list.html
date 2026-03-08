@@ -1,0 +1,42 @@
+<h2>Мои подписки</h2>
+
+<a href="{% url 'main:add_subscription' %}">Добавить подписку</a>
+
+<ul>
+{% for sub in subscriptions %}
+
+<li>
+<b>{{ sub.name }}</b> —
+{{ sub.price }} {{ sub.currency }}
+
+<br>
+    {% if sub.service_url %}
+<a href="{{ sub.service_url }}" target="_blank" class="btn-open">
+Открыть сервис
+</a>
+{% endif %}
+
+    <div class="subscription-actions">
+    <a href="{% url 'main:add_subscription' %}?edit_id={{ sub.id }}" class="btn-edit">
+    Редактировать
+</a>
+
+    <form action="{% url 'main:delete_subscription' sub.id %}" method="POST" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-delete" onclick="return confirm('Удалить эту подписку?')">Удалить</button>
+    </form>
+</div>
+
+Следующее списание:
+{{ sub.next_payment_date }}
+
+
+
+</li>
+
+{% empty %}
+
+<p>Подписок пока нет</p>
+
+{% endfor %}
+</ul>

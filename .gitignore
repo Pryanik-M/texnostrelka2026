@@ -1,56 +1,38 @@
-# OSX
-#
-.DS_Store
-
-# Android/IntelliJ
-#
-build/
-.idea
-.gradle
-local.properties
-*.iml
-*.hprof
-.cxx/
-
-# Bundle artifacts
-*.jsbundle
-
-# --- Системные файлы ---
+﻿# OS / editor
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
 *.swp
+*.iml
+
+# Logs
 *.log
 
-# --- Зависимости (САМОЕ ВАЖНОЕ) ---
-node_modules/
-**/node_modules/
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.bak
+*.dat
+*.dir
 
-# --- Expo и мобильная разработка (папка mobile) ---
-mobile/.expo/
-mobile/dist/
-mobile/web-build/
-mobile/android/
-mobile/ios/
-mobile/dev-client-builds/
+# Django
+*.pot
+db.sqlite3
+media/
+staticfiles/
+*/migrations/*.py
+!*/migrations/__init__.py
 
-# --- Временные файлы сборки ---
-build/
-bin/
-obj/
-out/
-.gradle/
-*.class
-*.dex
-*.apk
-*.aar
-*.bundle
+# Virtualenv
+.venv/
+venv/
+env/
 
-# --- Секреты (API ключи, пароли) ---
+# Environment / secrets
 .env
 .env.local
 .env.development.local
@@ -60,5 +42,37 @@ out/
 *.jks
 *.keystore
 
-# --- Прочее ---
-texnostrelka/node_modules/
+# Android / IntelliJ / Gradle
+build/
+.gradle/
+local.properties
+*.hprof
+.cxx/
+
+# Java / Android artifacts
+bin/
+obj/
+out/
+*.class
+*.dex
+*.apk
+*.aar
+*.bundle
+
+# Node / package managers
+node_modules/
+**/node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Expo / mobile
+mobile/.expo/
+mobile/dist/
+mobile/web-build/
+mobile/android/
+mobile/ios/
+mobile/dev-client-builds/
+
+# Bundle artifacts
+*.jsbundle

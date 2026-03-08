@@ -1,0 +1,19 @@
+<h2>Найденные подписки</h2>
+{% for c in candidates %}
+<div class="candidate-card">
+<p><b>{{ c.detected_service }}</b></p>
+<p>{{ c.subject }}</p>
+
+<a href="https://mail.yandex.ru/#search?request={{ c.subject }}" target="_blank">
+Открыть письмо
+</a>
+<a href="{% url 'main:create_from_email' c.id %}">
+Добавить подписку
+</a>
+<a href="{% url 'main:ignore_candidate' c.id %}">
+Игнорировать
+</a>
+</div>
+{% empty %}
+<p>Новых подписок не найдено</p>
+{% endfor %}

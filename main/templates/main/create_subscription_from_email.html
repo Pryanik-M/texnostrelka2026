@@ -1,0 +1,18 @@
+<h2>Создать подписку</h2>
+
+<p>Найдено письмо:</p>
+
+<p>Отправитель: {{ candidate.sender }}</p>
+<p>Тема: {{ candidate.subject }}</p>
+
+<form method="post">
+
+{% csrf_token %}
+
+{{ form.as_p }}
+
+<button type="submit">
+Сохранить подписку
+</button>
+
+</form>

@@ -1,0 +1,100 @@
+{% load static %}
+{% load webpush_notifications %}
+{% webpush_header %}
+
+<head>
+    <link rel="stylesheet" href="{% static 'css/profile.css' %}">
+</head>
+<h3>Подписки</h3>
+
+<a href="{% url 'main:add_subscription' %}">
+Добавить подписку вручную
+</a>
+
+<br><br>
+
+<a href="{% url 'main:subscriptions' %}">
+Просмотреть все подписки
+</a>
+
+
+<h3>Почта</h3>
+
+{% if email_account %}
+
+<p>
+Подключена почта:
+<b>{{ email_account.email }}</b>
+</p>
+
+<p style="color:green;">
+Почта подключена
+</p>
+
+<a href="{% url 'main:email_sync' %}">
+Проверить почту
+</a>
+
+<a href="{% url 'main:email_disconnect' %}">
+Отключить почту
+</a>
+
+<a href="{% url 'main:subscription_candidates' %}">
+Найденные подписки
+</a>
+
+{% else %}
+
+<p style="color:red;">
+Почта не подключена
+</p>
+
+<button onclick="openEmailModal()">
+Подключить почту
+</button>
+
+{% endif %}
+
+{% webpush_button %}
+
+
+<div id="emailModal" class="modal">
+
+<div class="modal-content">
+
+<span class="close" onclick="closeEmailModal()">&times;</span>
+
+<h2>Подключение почты</h2>
+
+<p><b>Инструкция:</b></p>
+
+<ol>
+<li>Откройте настройки вашего почтового аккаунта</li>
+<li>Найдите раздел <b>Пароли приложений</b></li>
+<li>Создайте новый пароль для приложения</li>
+<li>Скопируйте пароль и вставьте его ниже</li>
+</ol>
+    {% if messages %}
+    {% for message in messages %}
+        <p class="error-email" style="color: red">{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+<form method="post" action="{% url 'auth:connect_email' %}">
+{% csrf_token %}
+
+<label>Пароль приложения</label>
+
+<input type="password" name="password" required>
+
+<br><br>
+
+<button type="submit">
+Подключить почту
+</button>
+
+</form>
+
+</div>
+</div>
+<script src="{% static 'js/profile.js' %}"></script>
