@@ -42,3 +42,6 @@ staticfiles/
 *.bak
 *.dat
 *.dir
+
+firebase_key.json
+*.json
