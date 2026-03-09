@@ -145,26 +145,18 @@ def profile_view(request):
 
 @login_required
 def connect_email(request):
-
     provider = detect_provider(request.user.email)
-
     if not provider:
         messages.error(request, "Провайдер почты не поддерживается")
         return redirect("auth:profile")
-
     if request.method == "POST":
-
         password = request.POST.get("password")
         email_address = request.user.email
-
         if not test_imap_connection(email_address, password, provider):
             messages.error(request, "Не удалось подключиться к почте")
             return redirect("auth:profile")
-
         encrypted_password = encrypt_password(password)
-
         account = EmailAccount.objects.filter(user=request.user).first()
-
         if account:
             account.email = email_address
             account.provider = provider
@@ -178,9 +170,7 @@ def connect_email(request):
                 provider=provider,
                 password=encrypted_password
             )
-
         messages.success(request, "Почта успешно подключена")
-
     return redirect("auth:profile")
 
 
@@ -208,4 +198,4 @@ def add_from_candidate(request, candidate_id):
 
 def logout_view(request):
     logout(request)  # удаляет сессию пользователя
-    return redirect("auth:home")
+    return redirect("main:home")

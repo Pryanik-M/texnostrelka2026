@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
@@ -6,12 +6,20 @@ import * as Linking from 'expo-linking';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import { CATEGORY_LABELS } from '../constants/categories';
+import { BillingPeriod } from '../types';
 
 type DetailRouteProp = RouteProp<RootStackParamList, 'SubscriptionDetail'>;
 
-const formatCurrency = (value: number, period: 'month' | 'year') => {
+const periodMap: Record<BillingPeriod, string> = {
+  day: 'день',
+  week: 'нед',
+  month: 'мес',
+  year: 'год',
+};
+
+const formatCurrency = (value: number, period: BillingPeriod) => {
   const base = value.toLocaleString('ru-RU');
-  return `${base} ₽/${period === 'month' ? 'мес' : 'год'}`;
+  return `${base} ₽/${periodMap[period]}`;
 };
 
 const formatDate = (isoDate: string | undefined) => {
@@ -26,7 +34,7 @@ const formatDate = (isoDate: string | undefined) => {
 };
 
 const formatDateTimeShort = (isoDate?: string) => {
-  if (!isoDate) return 'ещё не использовалась';
+  if (!isoDate) return 'еще не использовалась';
   const d = new Date(isoDate);
   if (Number.isNaN(d.getTime())) return isoDate;
   return d.toLocaleString('ru-RU', {
@@ -52,7 +60,7 @@ export const SubscriptionDetailScreen: React.FC = () => {
       <View style={styles.missingContainer}>
         <Text style={styles.missingTitle}>Подписка не найдена</Text>
         <Text style={styles.missingText}>
-          Возможно, она была удалена или ещё не загружена.
+          Возможно, она была удалена или еще не загружена.
         </Text>
         <TouchableOpacity style={styles.primaryButton} onPress={() => navigation.goBack()}>
           <Text style={styles.primaryButtonText}>Вернуться назад</Text>
@@ -64,43 +72,21 @@ export const SubscriptionDetailScreen: React.FC = () => {
   const categoryLabel = CATEGORY_LABELS[subscription.category] ?? subscription.category;
 
   const handleCancel = () => {
-    const template = `Тема: Отмена подписки ${subscription.name}
+    const template = `Тема: Отмена подписки ${subscription.name}\n\nЗдравствуйте!\n\nПрошу отменить мою подписку на сервис «${subscription.name}».\n\nДанные подписки:\n- Сервис: ${subscription.name}\n- Текущий тариф: ${formatCurrency(subscription.price, subscription.billingPeriod)}\n- Дата следующего списания: ${formatDate(subscription.nextChargeDate)}`;
 
-Здравствуйте!
-
-Прошу отменить мою подписку на сервис «${subscription.name}» и прекратить дальнейшие списания со счёта.
-
-Данные подписки:
-- Сервис: ${subscription.name}
-- Текущий тариф: ${formatCurrency(subscription.price, subscription.billingPeriod)}
-- Дата следующего списания: ${formatDate(subscription.nextChargeDate)}
-
-Если необходимы дополнительные данные для идентификации аккаунта, сообщите, пожалуйста.
-
-С уважением,
-[Ваше имя]`;
-
-    Alert.alert(
-      'Шаблон письма в поддержку',
-      template,
-      [
-        {
-          text: 'Открыть сайт сервиса',
-          onPress: () => {
-            if (subscription.url) {
-              Linking.openURL(subscription.url);
-            } else {
-              Alert.alert(
-                'Ссылка не указана',
-                'Для этой подписки нет сохранённой ссылки. Добавьте её в карточке редактирования.',
-              );
-            }
-          },
+    Alert.alert('Шаблон письма в поддержку', template, [
+      {
+        text: 'Открыть сайт сервиса',
+        onPress: () => {
+          if (subscription.url) {
+            Linking.openURL(subscription.url);
+          } else {
+            Alert.alert('Ссылка не указана', 'Для этой подписки нет сохраненной ссылки.');
+          }
         },
-        { text: 'Закрыть', style: 'cancel' },
-      ],
-      { cancelable: true },
-    );
+      },
+      { text: 'Закрыть', style: 'cancel' },
+    ]);
   };
 
   const handleMarkUsage = async () => {
@@ -145,17 +131,14 @@ export const SubscriptionDetailScreen: React.FC = () => {
         </View>
       </View>
 
-      {subscription.url && (
+      {subscription.url ? (
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Сервис</Text>
-          <TouchableOpacity
-            onPress={() => Linking.openURL(subscription.url!)}
-            style={styles.linkButton}
-          >
+          <TouchableOpacity onPress={() => Linking.openURL(subscription.url!)} style={styles.linkButton}>
             <Text style={styles.linkText}>{subscription.url}</Text>
           </TouchableOpacity>
         </View>
-      )}
+      ) : null}
 
       {subscription.notes ? (
         <View style={styles.card}>
@@ -167,14 +150,9 @@ export const SubscriptionDetailScreen: React.FC = () => {
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Использование</Text>
         <Text style={styles.value}>
-          Использована{' '}
-          <Text style={styles.valueStrong}>
-            {subscription.usageCount ?? 0} раз
-          </Text>
+          Использована <Text style={styles.valueStrong}>{subscription.usageCount ?? 0} раз</Text>
         </Text>
-        <Text style={[styles.value, { marginTop: 4 }]}>
-          Последний раз: {formatDateTimeShort(subscription.lastUsedAt)}
-        </Text>
+        <Text style={[styles.value, { marginTop: 4 }]}>Последний раз: {formatDateTimeShort(subscription.lastUsedAt)}</Text>
       </View>
 
       <TouchableOpacity style={styles.primaryButton} onPress={handleMarkUsage}>
@@ -306,4 +284,3 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 });
-

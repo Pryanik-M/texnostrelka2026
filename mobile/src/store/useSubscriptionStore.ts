@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -82,10 +82,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         try {
           const updated = await updateSubscription(id, data);
           if (!updated) {
-            set({
-              isLoading: false,
-              error: 'Подписка не найдена',
-            });
+            set({ isLoading: false, error: 'Подписка не найдена' });
             return null;
           }
           const list = get().subscriptions.map((s) => (s.id === id ? updated : s));
@@ -108,10 +105,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
             const list = get().subscriptions.filter((s) => s.id !== id);
             set({ subscriptions: list, isLoading: false });
           } else {
-            set({
-              isLoading: false,
-              error: 'Не удалось удалить подписку',
-            });
+            set({ isLoading: false, error: 'Не удалось удалить подписку' });
           }
           return ok;
         } catch (e) {
@@ -133,7 +127,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           } else {
             set({
               isLoading: false,
-              error: 'Не удалось распознать подписку в письме',
+              error: 'Не удалось распознать подписку в тексте письма',
             });
           }
           return created;
@@ -141,9 +135,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           set({
             isLoading: false,
             error:
-              e instanceof Error
-                ? e.message
-                : 'Ошибка при импорте подписки из письма',
+              e instanceof Error ? e.message : 'Ошибка при импорте подписки из письма',
           });
           return null;
         }
@@ -155,8 +147,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           set({ analytics });
         } catch (e) {
           set({
-            error:
-              e instanceof Error ? e.message : 'Не удалось загрузить аналитику подписок',
+            error: e instanceof Error ? e.message : 'Не удалось загрузить аналитику',
           });
         }
       },
@@ -167,10 +158,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           set({ forecast });
         } catch (e) {
           set({
-            error:
-              e instanceof Error
-                ? e.message
-                : 'Не удалось загрузить прогноз расходов',
+            error: e instanceof Error ? e.message : 'Не удалось загрузить прогноз расходов',
           });
         }
       },
@@ -181,10 +169,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           return recs;
         } catch (e) {
           set({
-            error:
-              e instanceof Error
-                ? e.message
-                : 'Не удалось загрузить рекомендации по подпискам',
+            error: e instanceof Error ? e.message : 'Не удалось загрузить рекомендации',
           });
           return [];
         }
@@ -197,10 +182,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
     {
       name: 'subscription-monitor-store',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({
-        subscriptions: state.subscriptions,
-      }),
+      partialize: (state) => ({ subscriptions: state.subscriptions }),
     },
   ),
 );
-

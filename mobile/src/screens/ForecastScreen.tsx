@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 
@@ -124,12 +124,7 @@ export const ForecastScreen: React.FC = () => {
             return (
               <View key={cat.id} style={styles.recommendationBlock}>
                 <View style={styles.recommendationHeader}>
-                  <View
-                    style={[
-                      styles.recommendationDot,
-                      { backgroundColor: cat.color },
-                    ]}
-                  />
+                  <View style={[styles.recommendationDot, { backgroundColor: cat.color }]} />
                   <Text style={styles.recommendationTitle}>{cat.label}</Text>
                 </View>
                 {recs.slice(0, 3).map((r) => (
@@ -152,83 +147,23 @@ export const ForecastScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#020617',
-  },
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 40,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#e5e7eb',
-  },
-  subtitle: {
-    marginTop: 4,
-    color: '#9ca3af',
-    fontSize: 13,
-    marginBottom: 16,
-  },
+  container: { flex: 1, backgroundColor: '#020617' },
+  content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 },
+  title: { fontSize: 22, fontWeight: '700', color: '#e5e7eb' },
+  subtitle: { marginTop: 4, color: '#9ca3af', fontSize: 13, marginBottom: 16 },
   card: {
-    marginTop: 18,
-    borderRadius: 18,
-    backgroundColor: '#020617',
-    borderWidth: 1,
-    borderColor: '#111827',
-    padding: 16,
+    marginTop: 18, borderRadius: 18, backgroundColor: '#020617', borderWidth: 1,
+    borderColor: '#111827', padding: 16,
   },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#e5e7eb',
-  },
-  sectionSubtitle: {
-    marginTop: 6,
-    fontSize: 13,
-    color: '#9ca3af',
-  },
-  lineChartWrapper: {
-    marginTop: 16,
-    height: 220,
-  },
-  emptyText: {
-    marginTop: 12,
-    fontSize: 13,
-    color: '#6b7280',
-  },
-  recommendationBlock: {
-    marginTop: 16,
-  },
-  recommendationHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  recommendationDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 999,
-    marginRight: 8,
-  },
-  recommendationTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#e5e7eb',
-  },
-  recommendationItem: {
-    marginLeft: 4,
-    marginTop: 2,
-    fontSize: 13,
-    color: '#e5e7eb',
-  },
-  recommendationPrice: {
-    color: '#38bdf8',
-  },
-  recommendationVendor: {
-    color: '#9ca3af',
-  },
+  sectionTitle: { fontSize: 15, fontWeight: '600', color: '#e5e7eb' },
+  sectionSubtitle: { marginTop: 6, fontSize: 13, color: '#9ca3af' },
+  lineChartWrapper: { marginTop: 16, height: 220 },
+  emptyText: { marginTop: 12, fontSize: 13, color: '#6b7280' },
+  recommendationBlock: { marginTop: 16 },
+  recommendationHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
+  recommendationDot: { width: 10, height: 10, borderRadius: 999, marginRight: 8 },
+  recommendationTitle: { fontSize: 14, fontWeight: '600', color: '#e5e7eb' },
+  recommendationItem: { marginLeft: 4, marginTop: 2, fontSize: 13, color: '#e5e7eb' },
+  recommendationPrice: { color: '#38bdf8' },
+  recommendationVendor: { color: '#9ca3af' },
 });
-

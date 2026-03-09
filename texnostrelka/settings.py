@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 import os
 from pathlib import Path
 from cryptography.fernet import Fernet
+from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
@@ -16,6 +17,7 @@ INSTALLED_APPS = [
     'users',
     'main',
     'webpush',
+    'rest_framework',
     'django_celery_beat',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -122,4 +124,16 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'users.tasks.check_subscription_notifications',
         'schedule': 60.0,
     },
+}
+
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
 }

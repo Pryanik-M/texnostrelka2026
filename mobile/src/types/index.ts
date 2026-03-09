@@ -5,15 +5,18 @@ export type SubscriptionCategory =
   | 'music'
   | 'cloud';
 
+export type BillingPeriod = 'day' | 'week' | 'month' | 'year';
+
 export interface Subscription {
   id: string;
   name: string;
   price: number;
   currency: 'RUB';
-  billingPeriod: 'month' | 'year';
+  billingPeriod: BillingPeriod;
   nextChargeDate: string; // ISO string
   category: SubscriptionCategory;
   isActive: boolean;
+  status?: 'active' | 'paused' | 'cancelled';
   createdAt: string;
   updatedAt: string;
   notes?: string;
@@ -41,6 +44,14 @@ export interface MonthlyForecastItem {
 
 export interface Forecast {
   months: MonthlyForecastItem[];
+  totalWeekSpending?: number;
+  monthlyForecast?: number;
+  yearlyForecast?: number;
+  upcomingSubscriptions?: Subscription[];
+  recommendations?: {
+    topCategory?: SubscriptionCategory | null;
+    mostExpensiveSubscription?: Subscription | null;
+  };
 }
 
 export interface Recommendation {

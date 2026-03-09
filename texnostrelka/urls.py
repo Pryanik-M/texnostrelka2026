@@ -8,4 +8,5 @@ urlpatterns = [
     path('auth/', include('users.urls')),
     path('admin/', admin.site.urls),
     path('webpush/', include('webpush.urls')),
+    path('api/users/', include('users.api_urls')),
 ]
