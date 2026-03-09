@@ -51,6 +51,7 @@ def register_verify_view(request):
             f"Ваш код: {code}",
             settings.DEFAULT_FROM_EMAIL,
             [data["email"]],
+            fail_silently=False
         )
         return render(request, "accounts/verify.html", {"form": form, "code_sent": True})
     if request.method == "POST" and request.POST.get("action") == "verify":

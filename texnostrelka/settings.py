@@ -11,12 +11,17 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 EMAIL_ENCRYPTION_KEY = os.getenv("EMAIL_ENCRYPTION_KEY")
 DEBUG = os.getenv("DEBUG", "False") == "True"
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    "192.168.31.96",
+]
 
 INSTALLED_APPS = [
     'users',
     'main',
     'webpush',
+    'corsheaders',
     'rest_framework',
     'django_celery_beat',
     'django.contrib.admin',
@@ -28,6 +33,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -107,7 +114,7 @@ WEBPUSH_SETTINGS = {
     "VAPID_ADMIN_EMAIL": "admin@example.com",
     "SERVICE_WORKER_PATH": "/static/service-worker.js"
 }
-WEBPUSH_SERVICE_WORKER_PATH = 'webpush/service-worker.js'
+WEBPUSH_SERVICE_WORKER_PATH = '/static/service-worker.js'
 
 CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
 CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
@@ -128,6 +135,9 @@ CELERY_BEAT_SCHEDULE = {
 
 
 REST_FRAMEWORK = {
+    # "DEFAULT_PERMISSION_CLASSES": [
+    #     "rest_framework.permissions.IsAuthenticated",
+    # ],
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
@@ -137,3 +147,7 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
 }
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+FIREBASE_CREDENTIALS = BASE_DIR / "firebase_key.json"

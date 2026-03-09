@@ -1,7 +1,6 @@
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
+from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from .forms import RegistrationForm
 from .utils import generate_2fa_code, hash_code
@@ -10,14 +9,14 @@ from .forms import ForgotPasswordForm
 from django.conf import settings
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
-from .models import EmailAccount, EmailSubscriptionCandidate
 from .email_providers import detect_provider
 from rest_framework.response import Response
 from .email_validator import test_imap_connection
 from .crypto_utils import encrypt_password
-from .models import EmailAccount
+from .models import EmailAccount, Device
 from users.models import EmailSubscriptionCandidate
 from main.models import Subscription
+from .push_service import send_push
 
 
 
@@ -204,6 +203,37 @@ def profile_api(request):
         "email_account": email_account.email if email_account else None,
         "candidates_count": candidates_count
     })
+
+
+class RegisterDeviceAPI(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        token = request.data.get("token")
+        if not token:
+            print("DEBUG: RegisterDeviceAPI received empty token")
+            return Response({"error": "No token provided"}, status=400)
+        print(f"DEBUG: Registering device for user {request.user.username}. Token: {token[:15]}...")
+        Device.objects.update_or_create(
+            user=request.user,
+            token=token
+        )
+        return Response({"status": "ok"})
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def test_push(request):
+    devices = Device.objects.filter(user=request.user)
+    if not devices.exists():
+        return Response({"error": "Device not registered"})
+
+    for device in devices:
+        send_push(
+            device.token,
+            "Тестовое уведомление",
+            "Push работает!"
+        )
+    return Response({"message": f"Push sent to {devices.count()} devices"})
 
 
 @api_view(["POST"])

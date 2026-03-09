@@ -12,4 +12,6 @@ urlpatterns = [
     path("email/connect/", api_views.connect_email_api),
     # path("candidates/<int:candidate_id>/add/", api_views.add_from_candidate_api),
     path("logout/", api_views.logout_api),
+    path("test-push/", api_views.test_push),
+    path("device/register/", api_views.RegisterDeviceAPI.as_view()),
 ]

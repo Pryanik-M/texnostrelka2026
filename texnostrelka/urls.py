@@ -9,4 +9,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('webpush/', include('webpush.urls')),
     path('api/users/', include('users.api_urls')),
+    path('api/main/', include('main.api_urls')),
 ]
