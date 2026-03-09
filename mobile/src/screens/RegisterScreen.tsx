@@ -27,7 +27,12 @@ interface RegisterFormValues {
 
 const registerSchema = yup.object({
   email: yup.string().required('Введите email').email('Неверный формат email'),
-  password: yup.string().required('Введите пароль').min(6, 'Минимум 6 символов'),
+  password: yup
+    .string()
+    .required('Введите пароль')
+    .min(8, 'Минимум 8 символов')
+    .matches(/[A-Z]/, 'Нужна хотя бы одна заглавная буква')
+    .matches(/[0-9]/, 'Нужна хотя бы одна цифра'),
   username: yup.string().required('Введите username').min(3, 'Минимум 3 символа'),
 });
 
@@ -129,7 +134,7 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
                     value={value}
                     onChangeText={onChange}
                     onBlur={onBlur}
-                    placeholder="Минимум 6 символов"
+                    placeholder="Минимум 8 символов, 1 заглавная, 1 цифра"
                     placeholderTextColor="#6b7280"
                     secureTextEntry
                   />

@@ -1,7 +1,17 @@
 ﻿import * as SecureStore from 'expo-secure-store';
 
-const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://10.0.2.2:8000/api/users';
+function resolveApiBaseUrl(rawBaseUrl?: string) {
+  const fallback = 'http://10.0.2.2:8000/api/users';
+  const base = (rawBaseUrl ?? fallback).trim().replace(/\/+$/, '');
+
+  if (base.endsWith('/api/users')) {
+    return base;
+  }
+
+  return `${base}/api/users`;
+}
+
+const API_BASE_URL = resolveApiBaseUrl(process.env.EXPO_PUBLIC_API_BASE_URL);
 export const AUTH_TOKEN_KEY = 'authToken';
 export const REFRESH_TOKEN_KEY = 'refreshToken';
 
@@ -17,12 +27,26 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
   if (!response.ok) {
+    const formErrors =
+      data.errors && typeof data.errors === 'object'
+        ? (data.errors as Record<string, unknown>)
+        : null;
+    const firstFormError =
+      formErrors &&
+      Object.values(formErrors).find(
+        (value) => Array.isArray(value) && value.length > 0 && typeof value[0] === 'string',
+      );
+
     const errorMessage =
-      typeof data.error === 'string'
-        ? data.error
-        : typeof data.message === 'string'
-          ? data.message
-          : 'Ошибка запроса к серверу';
+      Array.isArray(firstFormError) && typeof firstFormError[0] === 'string'
+        ? firstFormError[0]
+        : typeof data.detail === 'string'
+          ? data.detail
+          : typeof data.error === 'string'
+            ? data.error
+            : typeof data.message === 'string'
+              ? data.message
+              : 'Ошибка запроса к серверу';
     throw new Error(errorMessage);
   }
 
@@ -43,7 +67,12 @@ export async function login(email: string, password: string) {
 export async function register(email: string, username: string, password: string) {
   return request<{ message: string }>('/register/', {
     method: 'POST',
-    body: JSON.stringify({ email, username, password }),
+    body: JSON.stringify({
+      email,
+      username,
+      password,
+      confirm_password: password,
+    }),
   });
 }
 
