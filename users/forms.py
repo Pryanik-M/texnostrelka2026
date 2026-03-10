@@ -16,43 +16,75 @@ class LoginForm(forms.Form):
 
 
 class RegistrationForm(forms.ModelForm):
+
     password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'placeholder': 'Пароль'}),
-        min_length=8,
-        help_text="Минимум 8 символов"
+        widget=forms.PasswordInput(attrs={
+            "placeholder": "Пароль",
+            "minlength": "8"
+        }),
+        min_length=8
     )
+
     confirm_password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'placeholder': 'Повторите пароль'})
+        widget=forms.PasswordInput(attrs={
+            "placeholder": "Повторите пароль"
+        })
     )
 
     class Meta:
         model = User
-        fields = ['username', 'email']
+        fields = ["username", "email"]
+
         widgets = {
-            'username': forms.TextInput(attrs={'placeholder': 'Имя пользователя'}),
-            'email': forms.EmailInput(attrs={'placeholder': 'Email'}),
+            "username": forms.TextInput(attrs={
+                "placeholder": "Имя пользователя",
+                "minlength": "3",
+                "maxlength": "30"
+            }),
+            "email": forms.EmailInput(attrs={
+                "placeholder": "Email",
+                "type": "email"
+            })
         }
 
+    def clean_username(self):
+        username = self.cleaned_data.get("username")
+
+        if len(username) < 3:
+            raise ValidationError("Имя пользователя должно быть минимум 3 символа")
+
+        if not username.isalnum():
+            raise ValidationError("Имя пользователя должно содержать только буквы и цифры")
+
+        return username
+
     def clean_email(self):
-        email = self.cleaned_data.get('email')
+        email = self.cleaned_data.get("email")
+
         if User.objects.filter(email=email).exists():
-            raise ValidationError("Этот Email уже занят.")
+            raise ValidationError("Этот email уже используется")
+
         return email
 
     def clean_password(self):
-        password = self.cleaned_data.get('password')
-        if not re.search(r'[A-Z]', password):
-            raise ValidationError("Пароль должен содержать хотя бы одну заглавную букву.")
-        if not re.search(r'[0-9]', password):
-            raise ValidationError("Пароль должен содержать хотя бы одну цифру.")
+        password = self.cleaned_data.get("password")
+        if not re.search(r"[A-Z]", password):
+            raise ValidationError("Пароль должен содержать заглавную букву")
+        # if not re.search(r"[a-z]", password):
+        #     raise ValidationError("Пароль должен содержать маленькую букву")
+        if not re.search(r"\d", password):
+            raise ValidationError("Пароль должен содержать цифру")
+        # if not re.search(r"[!@#$%^&*]", password):
+        #     raise ValidationError("Пароль должен содержать спецсимвол (!@#$%^&*)")
         return password
 
     def clean(self):
         cleaned_data = super().clean()
         password = cleaned_data.get("password")
-        confirm_password = cleaned_data.get("confirm_password")
-        if password != confirm_password:
-            self.add_error('confirm_password', "Пароли не совпадают.")
+        confirm = cleaned_data.get("confirm_password")
+        if password and confirm and password != confirm:
+            self.add_error("confirm_password", "Пароли не совпадают")
+
         return cleaned_data
 
 

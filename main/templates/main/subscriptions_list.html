@@ -23,7 +23,12 @@
 
     <form action="{% url 'main:delete_subscription' sub.id %}" method="POST" style="display:inline;">
         {% csrf_token %}
-        <button type="submit" class="btn btn-delete" onclick="return confirm('Удалить эту подписку?')">Удалить</button>
+        <button
+type="submit"
+class="btn-delete"
+onclick="return confirm('Вы уверены что хотите удалить эту подписку?')">
+Удалить
+</button>
     </form>
 </div>
 

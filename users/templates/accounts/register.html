@@ -1,13 +1,64 @@
 <h2>Регистрация</h2>
+
 <form method="post">
-    {% csrf_token %}
-    {% for field in form %}
-        <div>
-            {{ field.label_tag }}<br>
-            {{ field }}
-            {% if field.errors %}<span style="color: red;">{{ field.errors }}</span>{% endif %}
-            {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
-        </div>
-    {% endfor %}
-    <button type="submit">Продолжить</button>
+
+{% csrf_token %}
+
+{% for field in form %}
+
+<div class="form-group">
+
+{{ field.label_tag }}
+
+{{ field }}
+
+{% if field.help_text %}
+<small>{{ field.help_text }}</small>
+{% endif %}
+
+{% if field.errors %}
+<div class="error">
+{% for error in field.errors %}
+<p>{{ error }}</p>
+{% endfor %}
+</div>
+{% endif %}
+
+</div>
+
+{% endfor %}
+
+<button type="submit">
+Продолжить
+</button>
+
 </form>
+
+<style>
+
+.form-group{
+margin-bottom:15px;
+}
+
+input{
+width:260px;
+padding:10px;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+.error{
+color:red;
+font-size:14px;
+}
+
+button{
+padding:10px 20px;
+background:#4CAF50;
+border:none;
+border-radius:6px;
+color:white;
+cursor:pointer;
+}
+
+</style>

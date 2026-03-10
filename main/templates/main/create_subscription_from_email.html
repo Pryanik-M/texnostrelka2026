@@ -1,15 +1,31 @@
 <h2>Создать подписку</h2>
 
-<p>Найдено письмо:</p>
-
-<p>Отправитель: {{ candidate.sender }}</p>
-<p>Тема: {{ candidate.subject }}</p>
+<p><b>Отправитель:</b> {{ candidate.sender }}</p>
+<p><b>Тема:</b> {{ candidate.subject }}</p>
 
 <form method="post">
 
 {% csrf_token %}
 
-{{ form.as_p }}
+{% for field in form %}
+
+<div class="field">
+
+<label>{{ field.label }}</label>
+
+{{ field }}
+
+{% if field.errors %}
+<div style="color:red">
+{% for error in field.errors %}
+<p>{{ error }}</p>
+{% endfor %}
+</div>
+{% endif %}
+
+</div>
+
+{% endfor %}
 
 <button type="submit">
 Сохранить подписку

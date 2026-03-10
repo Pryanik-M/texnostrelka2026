@@ -30,9 +30,25 @@ def login_view(request):
 
 
 def register_view(request):
+
     form = RegistrationForm(request.POST or None)
+
     if request.method == "POST" and form.is_valid():
-        request.session["register_data"] = form.cleaned_data
+
+        data = form.cleaned_data
+
+        code = generate_2fa_code(6)
+
+        request.session["register_data"] = data
+        request.session["email_code"] = hash_code(code)
+
+        send_mail(
+            "Код подтверждения регистрации",
+            f"Ваш код: {code}",
+            settings.DEFAULT_FROM_EMAIL,
+            [data["email"]],
+            fail_silently=False
+        )
         return redirect("auth:register_verify")
     return render(request, "accounts/register.html", {"form": form})
 
@@ -42,42 +58,40 @@ def register_verify_view(request):
     if not data:
         return redirect("auth:register")
     form = VerifyForm(request.POST or None)
-    # Логика отправки кода
-    if request.method == "POST" and request.POST.get("action") == "send":
-        code = generate_2fa_code(6)
-        request.session["email_code"] = hash_code(code)
-        send_mail(
-            "Код подтверждения регистрации",
-            f"Ваш код: {code}",
-            settings.DEFAULT_FROM_EMAIL,
-            [data["email"]],
-            fail_silently=False
-        )
-        return render(request, "accounts/verify.html", {"form": form, "code_sent": True})
-    if request.method == "POST" and request.POST.get("action") == "verify":
-        if form.is_valid():
-            input_code = form.cleaned_data['code']
-            if hash_code(input_code) == request.session.get("email_code"):
-                user = User.objects.create_user(
-                    username=data["username"],
-                    email=data["email"],
-                    password=data["password"]
-                )
-                login(request, user)
-                request.session.pop("register_data")
-                request.session.pop("email_code")
-                return redirect("auth:profile")
-            else:
-                form.add_error('code', "Неверный или просроченный код.")
-    return render(request, "accounts/verify.html", {"form": form})
+    if request.method == "POST" and form.is_valid():
+        input_code = form.cleaned_data["code"]
+        if hash_code(input_code) == request.session.get("email_code"):
+            user = User.objects.create_user(
+                username=data["username"],
+                email=data["email"],
+                password=data["password"]
+            )
+            request.session.pop("register_data", None)
+            request.session.pop("email_code", None)
+            return redirect("auth:login")
+        else:
+            form.add_error("code", "Неверный код")
+    return render(request, "accounts/verify.html", {
+        "form": form,
+        "code_sent": True
+    })
 
 
 def forgot_password_view(request):
     form = ForgotPasswordForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        email = form.cleaned_data['email']
+        email = form.cleaned_data["email"]
         user = User.objects.get(email=email)
+        code = generate_2fa_code(6)
         request.session["reset_user"] = user.id
+        request.session["reset_code"] = hash_code(code)
+        send_mail(
+            "Код сброса пароля",
+            f"Ваш код: {code}",
+            settings.DEFAULT_FROM_EMAIL,
+            [email],
+            fail_silently=False
+        )
         return redirect("auth:forgot_verify")
     return render(request, "accounts/forgot_password.html", {"form": form})
 
@@ -86,38 +100,33 @@ def forgot_verify_view(request):
     user_id = request.session.get("reset_user")
     if not user_id:
         return redirect("auth:login")
-    user = User.objects.get(id=user_id)
     form = VerifyForm(request.POST or None)
-    if request.method == "POST" and request.POST.get("action") == "send":
-        code = generate_2fa_code(6)
-        request.session["reset_code"] = hash_code(code)
-        send_mail(
-            "Код сброса пароля",
-            f"Ваш код: {code}",
-            settings.DEFAULT_FROM_EMAIL,
-            [user.email],
-        )
-        return render(request, "accounts/verify.html", {"form": form, "code_sent": True})
-    if request.method == "POST" and request.POST.get("action") == "verify":
-        if form.is_valid():
-            input_code = form.cleaned_data['code']
-            if hash_code(input_code) == request.session.get("reset_code"):
-                request.session.pop("reset_code")
-                return redirect("auth:reset_password")
-            else:
-                form.add_error('code', "Неверный код.")
-    return render(request, "accounts/verify.html", {"form": form})
+    if request.method == "POST" and form.is_valid():
+        input_code = form.cleaned_data["code"]
+        if hash_code(input_code) == request.session.get("reset_code"):
+            request.session.pop("reset_code", None)
+            return redirect("auth:reset_password")
+        else:
+            form.add_error("code", "Неверный код")
+    return render(request, "accounts/verify.html", {
+        "form": form,
+        "code_sent": True
+    })
 
 
 def reset_password_view(request):
     user_id = request.session.get("reset_user")
-    if not user_id: return redirect("auth:login")
+    if not user_id:
+        return redirect("auth:login")
     form = ResetPasswordForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         user = User.objects.get(id=user_id)
-        user.set_password(form.cleaned_data['password'])
+        user.set_password(form.cleaned_data["password"])
         user.save()
-        request.session.pop("reset_user")
+        # очищаем сессию
+        request.session.pop("reset_user", None)
+        request.session.pop("reset_code", None)
+        request.session.pop("reset_verified", None)
         return redirect("auth:login")
     return render(request, "accounts/reset_password.html", {"form": form})
 

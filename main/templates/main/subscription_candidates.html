@@ -10,9 +10,21 @@
 <a href="{% url 'main:create_from_email' c.id %}">
 Добавить подписку
 </a>
-<a href="{% url 'main:ignore_candidate' c.id %}">
+<form method="post"
+action="{% url 'main:ignore_candidate' c.id %}"
+style="display:inline;">
+
+{% csrf_token %}
+
+<button
+type="submit"
+onclick="return confirm('Игнорировать эту подписку?')">
+
 Игнорировать
-</a>
+
+</button>
+
+</form>
 </div>
 {% empty %}
 <p>Новых подписок не найдено</p>
