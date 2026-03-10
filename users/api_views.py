@@ -1,3 +1,4 @@
+import logging
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib.auth.models import User
@@ -18,6 +19,8 @@ from .crypto_utils import encrypt_password
 from .models import EmailAccount
 from users.models import EmailSubscriptionCandidate
 from main.models import Subscription
+
+logger = logging.getLogger(__name__)
 
 
 

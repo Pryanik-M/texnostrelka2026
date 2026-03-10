@@ -3,7 +3,10 @@ from django.conf import settings
 
 
 def get_cipher():
-    return Fernet(settings.EMAIL_ENCRYPTION_KEY)
+    key = settings.EMAIL_ENCRYPTION_KEY
+    if not key:
+        raise RuntimeError("EMAIL_ENCRYPTION_KEY is missing in .env")
+    return Fernet(key)
 
 
 def encrypt_password(password: str) -> str:

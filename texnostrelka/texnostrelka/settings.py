@@ -15,7 +15,8 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv()
+# Always load env from the repository root.
+load_dotenv(dotenv_path=BASE_DIR.parent / ".env", override=True)
 
 
 # Quick-start development settings - unsuitable for production
@@ -23,11 +24,20 @@ load_dotenv()
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    # Fallback for local dev when the environment is missing/overridden.
+    SECRET_KEY = "dev-secret-key-change-me-please-50-chars-minimum" if os.getenv("DEBUG") == "True" else ""
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY is missing. Check the root .env file.")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
+    if host.strip()
+]
 
 
 # Application definition

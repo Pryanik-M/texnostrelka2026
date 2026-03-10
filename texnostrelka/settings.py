@@ -5,9 +5,14 @@ from cryptography.fernet import Fernet
 from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv()
+load_dotenv(dotenv_path=BASE_DIR / ".env", override=True)
 
 SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    # Fallback for local dev when the environment is missing/overridden.
+    SECRET_KEY = "dev-secret-key-change-me-please-50-chars-minimum" if os.getenv("DEBUG") == "True" else ""
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY is missing. Check the root .env file.")
 
 EMAIL_ENCRYPTION_KEY = os.getenv("EMAIL_ENCRYPTION_KEY")
 DEBUG = os.getenv("DEBUG", "False") == "True"
@@ -100,19 +105,25 @@ STATICFILES_DIRS = [
 ]
 
 # ПЕРЕМЕННЫЕ ДЛЯ ПОЧТЫ
-EMAIL_BACKEND = os.getenv("EMAIL_BACKEND")
-EMAIL_HOST = os.getenv("EMAIL_HOST")
-EMAIL_PORT = os.getenv("EMAIL_PORT")
+EMAIL_BACKEND = os.getenv(
+    "EMAIL_BACKEND",
+    "django.core.mail.backends.console.EmailBackend" if DEBUG else "django.core.mail.backends.smtp.EmailBackend",
+)
+EMAIL_HOST = os.getenv("EMAIL_HOST", "localhost")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "25"))
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS") == "True"
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "False").lower() == "true"
+EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "False").lower() == "true"
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "noreply@localhost")
+EMAIL_TIMEOUT = int(os.getenv("EMAIL_TIMEOUT", "10"))
 
 # ПЕРЕМЕННЫЕ ДЛЯ WEBPUSH И ПРОВЕРКИ ПОЧТЫ КАЖДЫЕ 60 СЕК
 WEBPUSH_SETTINGS = {
-    "VAPID_PUBLIC_KEY": "BFdSZIhAg5Y4kLMF7DeTcSkBtdLtbAtcLeGdjmdz7sBiqJC83z73b7gGqQsaVHx-BOVTK6aDWH1E-b_RX8FM5Sg=",
-    "VAPID_PRIVATE_KEY": "BAsjVrLhI_W3sS6CVkf8NJTju-IE-CZhto_fKFT1SuY=",
-    "VAPID_ADMIN_EMAIL": "admin@example.com",
-    "SERVICE_WORKER_PATH": "/static/service-worker.js"
+    "VAPID_PUBLIC_KEY": os.getenv("VAPID_PUBLIC_KEY", ""),
+    "VAPID_PRIVATE_KEY": os.getenv("VAPID_PRIVATE_KEY", ""),
+    "VAPID_ADMIN_EMAIL": os.getenv("VAPID_ADMIN_EMAIL", "admin@example.com"),
+    "SERVICE_WORKER_PATH": "/static/service-worker.js",
 }
 WEBPUSH_SERVICE_WORKER_PATH = 'webpush/service-worker.js'
 
@@ -143,4 +154,17 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+}
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "root": {"handlers": ["console"], "level": "INFO"},
+    "loggers": {
+        "django.request": {"handlers": ["console"], "level": "ERROR", "propagate": False},
+        "users": {"handlers": ["console"], "level": "INFO", "propagate": False},
+    },
 }

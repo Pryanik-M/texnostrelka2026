@@ -1,11 +1,46 @@
-﻿import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from 'expo-secure-store';
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
+
+function defaultBaseHost() {
+  if (Platform.OS === 'android') {
+    // For physical devices we rely on `adb reverse` (127.0.0.1 -> host).
+    // For Android emulators 10.0.2.2 maps to the host machine.
+    return Constants.isDevice ? 'http://127.0.0.1:8000' : 'http://10.0.2.2:8000';
+  }
+
+  return 'http://localhost:8000';
+}
 
 function resolveApiBaseUrl(rawBaseUrl?: string) {
-  const fallback = 'http://10.0.2.2:8000/api/users';
-  const base = (rawBaseUrl ?? fallback).trim().replace(/\/+$/, '');
+  const extraBase =
+    (Constants.expoConfig?.extra?.EXPO_PUBLIC_API_BASE_URL as string | undefined) ??
+    (Constants.manifest?.extra?.EXPO_PUBLIC_API_BASE_URL as string | undefined);
+  const trimmed = (extraBase ?? rawBaseUrl ?? '').trim();
+
+  const envFallbacks = [
+    process.env.EXPO_PUBLIC_API_BASE_URL_TUNNEL,
+    process.env.EXPO_PUBLIC_API_BASE_URL_IP,
+    process.env.EXPO_PUBLIC_API_BASE_URL_LOCAL,
+  ]
+    .filter((value): value is string => !!value && value.trim().length > 0)
+    .map((value) => value.trim());
+
+  const baseCandidate =
+    trimmed.length > 0
+      ? trimmed.includes('*')
+        ? envFallbacks[0] ?? envFallbacks[1] ?? envFallbacks[2] ?? defaultBaseHost()
+        : trimmed
+      : envFallbacks[0] ?? envFallbacks[1] ?? envFallbacks[2] ?? defaultBaseHost();
+
+  const base = baseCandidate.replace(/\/+$/, '');
 
   if (base.endsWith('/api/users')) {
     return base;
+  }
+
+  if (base.endsWith('/api')) {
+    return `${base}/users`;
   }
 
   return `${base}/api/users`;
