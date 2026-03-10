@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "555102791921",
+    "project_id": "tehnostrelka-47b27",
+    "storage_bucket": "tehnostrelka-47b27.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:555102791921:android:df0a08a4dbde156b3ba150",
+        "android_client_info": {
+          "package_name": "com.example.ts"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBdL37K5wiT9OlLvkoeKHyBTzPVpHzUMUE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
