@@ -9,12 +9,15 @@ export type BillingPeriod = 'day' | 'week' | 'month' | 'year';
 
 export interface Subscription {
   id: string;
+  backendId?: number;
   name: string;
   price: number;
   currency: 'RUB';
   billingPeriod: BillingPeriod;
   nextChargeDate: string; // ISO string
   category: SubscriptionCategory;
+  categoryId?: number | null;
+  categoryName?: string | null;
   isActive: boolean;
   status?: 'active' | 'paused' | 'cancelled';
   createdAt: string;

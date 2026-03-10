@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as SecureStore from 'expo-secure-store';
@@ -10,6 +10,8 @@ import { SubscriptionFormScreen } from '../screens/SubscriptionFormScreen';
 import { SubscriptionDetailScreen } from '../screens/SubscriptionDetailScreen';
 import { ImportEmailScreen } from '../screens/ImportEmailScreen';
 import { ForecastScreen } from '../screens/ForecastScreen';
+import { CandidatesScreen } from '../screens/CandidatesScreen';
+import { getProfile } from '../api/client';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -19,6 +21,7 @@ export type RootStackParamList = {
   SubscriptionForm: { subscriptionId?: string } | undefined;
   ImportEmail: undefined;
   Forecast: undefined;
+  Candidates: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -32,7 +35,17 @@ export const AppNavigator: React.FC = () => {
     const checkToken = async () => {
       try {
         const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
-        setInitialRoute(token ? 'MainTabs' : 'Login');
+        if (!token) {
+          setInitialRoute('Login');
+          return;
+        }
+        try {
+          await getProfile();
+          setInitialRoute('MainTabs');
+        } catch {
+          await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY);
+          setInitialRoute('Login');
+        }
       } catch {
         setInitialRoute('Login');
       }
@@ -113,7 +126,16 @@ export const AppNavigator: React.FC = () => {
           headerShadowVisible: false,
         }}
       />
+      <Stack.Screen
+        name="Candidates"
+        component={CandidatesScreen}
+        options={{
+          headerTitle: 'Кандидаты подписок',
+          headerTintColor: '#e5e7eb',
+          headerStyle: { backgroundColor: '#020617' },
+          headerShadowVisible: false,
+        }}
+      />
     </Stack.Navigator>
   );
 };
-

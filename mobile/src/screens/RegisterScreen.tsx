@@ -65,7 +65,7 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
     setServerError(null);
     try {
       const response = await registerVerify(code.trim());
-      await SecureStore.setItemAsync(AUTH_TOKEN_KEY, response.access);
+      await SecureStore.setItemAsync(AUTH_TOKEN_KEY, response.access ?? 'session');
       navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     } catch (error) {
       setServerError(error instanceof Error ? error.message : 'Ошибка подтверждения');
