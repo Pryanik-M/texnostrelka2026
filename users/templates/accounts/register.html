@@ -1,64 +1,55 @@
-<h2>Регистрация</h2>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>BANANOSUBS - Регистрация</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
+</head>
+<body>
 
-<form method="post">
+<header>
+    <div class="block1">
+        <h2>BANANOSUBS</h2>
+        <div class="header-link">
+            <a href="{% url 'main:home' %}" class="button1">Главная</a>
+            <a href="{% url 'main:analytics' %}" class="button2">Аналитика</a>
+            <a href="{% url 'main:forecast' %}" class="button3">Прогноз</a>
+        </div>
+        <a href="{% url 'auth:login' %}" class="registr">Регистрация | Вход</a>
+    </div>
+       <div class="line" style="border-bottom: solid 1px #e3e3e3;"></div>
+</header>
 
-{% csrf_token %}
-
-{% for field in form %}
-
-<div class="form-group">
-
-{{ field.label_tag }}
-
-{{ field }}
-
-{% if field.help_text %}
-<small>{{ field.help_text }}</small>
-{% endif %}
-
-{% if field.errors %}
-<div class="error">
-{% for error in field.errors %}
-<p>{{ error }}</p>
-{% endfor %}
+<div class="login-wrapper">
+    <div class="login-card">
+        <h1>Регистрация</h1>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-group">
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="error">
+                            {% for error in field.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <div class="buttons">
+                <button type="submit" class="btn-login">
+                    Зарегистрироваться
+                </button>
+                <a href="{% url 'auth:login' %}" class="btn-register-link">
+                    <button class="btn-register" type="button">
+                        Вход
+                    </button>
+                </a>
+        </form>
+    </div>
 </div>
-{% endif %}
 
-</div>
-
-{% endfor %}
-
-<button type="submit">
-Продолжить
-</button>
-
-</form>
-
-<style>
-
-.form-group{
-margin-bottom:15px;
-}
-
-input{
-width:260px;
-padding:10px;
-border-radius:6px;
-border:1px solid #ccc;
-}
-
-.error{
-color:red;
-font-size:14px;
-}
-
-button{
-padding:10px 20px;
-background:#4CAF50;
-border:none;
-border-radius:6px;
-color:white;
-cursor:pointer;
-}
-
-</style>
+</body>
+</html>

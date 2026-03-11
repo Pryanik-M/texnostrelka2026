@@ -99,8 +99,8 @@ class ForgotPasswordForm(forms.Form):
 
 
 class ResetPasswordForm(forms.Form):
-    password = forms.CharField(widget=forms.PasswordInput(), min_length=8)
-    confirm_password = forms.CharField(widget=forms.PasswordInput())
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Новый пароль'}), min_length=8)
+    confirm_password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Повторите пароль'}))
 
     def clean(self):
         cleaned_data = super().clean()

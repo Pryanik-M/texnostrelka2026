@@ -151,3 +151,8 @@ SIMPLE_JWT = {
 CORS_ALLOW_ALL_ORIGINS = True
 
 FIREBASE_CREDENTIALS = BASE_DIR / "firebase_key.json"
+
+
+LOGIN_URL = "auth:login"
+LOGIN_REDIRECT_URL = "main:home"
+LOGOUT_REDIRECT_URL = "main:home"

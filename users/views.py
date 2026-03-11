@@ -57,24 +57,41 @@ def register_verify_view(request):
     data = request.session.get("register_data")
     if not data:
         return redirect("auth:register")
-    form = VerifyForm(request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        input_code = form.cleaned_data["code"]
-        if hash_code(input_code) == request.session.get("email_code"):
-            user = User.objects.create_user(
-                username=data["username"],
-                email=data["email"],
-                password=data["password"]
+
+    if request.method == "POST":
+        # ПРОВЕРКА НАЖАТИЯ КНОПКИ ПОВТОРА
+        if request.POST.get("action") == "send":
+            code = generate_2fa_code(6)
+            request.session["email_code"] = hash_code(code)
+            send_mail(
+                "Новый код подтверждения",
+                f"Ваш новый код: {code}",
+                settings.DEFAULT_FROM_EMAIL,
+                [data["email"]],
+                fail_silently=False
             )
-            request.session.pop("register_data", None)
-            request.session.pop("email_code", None)
-            return redirect("auth:login")
-        else:
-            form.add_error("code", "Неверный код")
-    return render(request, "accounts/verify.html", {
-        "form": form,
-        "code_sent": True
-    })
+            messages.success(request, "Код отправлен повторно!")
+            return redirect("auth:register_verify")
+
+        # ОБЫЧНАЯ ПРОВЕРКА КОДА
+        form = VerifyForm(request.POST)
+        if form.is_valid():
+            input_code = form.cleaned_data["code"]
+            if hash_code(input_code) == request.session.get("email_code"):
+                User.objects.create_user(
+                    username=data["username"],
+                    email=data["email"],
+                    password=data["password"]
+                )
+                request.session.pop("register_data", None)
+                request.session.pop("email_code", None)
+                return redirect("auth:login")
+            else:
+                form.add_error("code", "Неверный код")
+    else:
+        form = VerifyForm()
+
+    return render(request, "accounts/verify.html", {"form": form})
 
 
 def forgot_password_view(request):
@@ -101,6 +118,21 @@ def forgot_verify_view(request):
     if not user_id:
         return redirect("auth:login")
     form = VerifyForm(request.POST or None)
+    if request.method == "POST":
+        # ПРОВЕРКА НАЖАТИЯ КНОПКИ ПОВТОРА
+        if request.POST.get("action") == "send":
+            user = get_object_or_404(User, id=user_id)
+            code = generate_2fa_code(6)
+            request.session["email_code"] = hash_code(code)
+            send_mail(
+                "Новый код подтверждения",
+                f"Ваш новый код: {code}",
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=False
+            )
+            messages.success(request, "Код отправлен повторно!")
+            return redirect("auth:forgot_verify")
     if request.method == "POST" and form.is_valid():
         input_code = form.cleaned_data["code"]
         if hash_code(input_code) == request.session.get("reset_code"):

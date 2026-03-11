@@ -1,71 +1,67 @@
-<h2>Вход</h2>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>BANANOSUBS - Вход</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+<body>
 
-<form method="post">
+<header>
+    <div class="block1">
+        <h2>BANANOSUBS</h2>
+        <div class="header-link">
+            <a href="{% url 'main:home' %}" class="button1">Главная</a>
+            <a href="{% url 'main:analytics' %}" class="button2">Аналитика</a>
+            <a href="{% url 'main:forecast' %}" class="button3">Прогноз</a>
+        </div>
+        <a href="{% url 'auth:login' %}" class="registr">Регистрация | Вход</a>
+    </div>
+       <div class="line" style="border-bottom: solid 1px #e3e3e3;"></div>
+</header>
 
-{% csrf_token %}
+<div class="login-wrapper">
+    <div class="login-card">
+        <h1>Вход</h1>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-group">
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="error-list">
+                            {% for error in field.errors %}
+                                <p class="error-text">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            {# Общие ошибки формы (например, неверный логин/пароль) #}
+            {% if form.non_field_errors %}
+                <div class="error-list">
+                    {% for error in form.non_field_errors %}
+                        <p class="error-text">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
 
-{% for field in form %}
+            <a class="forgot" href="{% url 'auth:forgot_password' %}">Забыли пароль?</a>
 
-<div class="form-group">
-
-<label>{{ field.label }}</label>
-
-{{ field }}
-
-{% if field.errors %}
-<div class="error">
-{% for error in field.errors %}
-<p>{{ error }}</p>
-{% endfor %}
+            <div class="buttons">
+                <button type="submit" class="btn-login">
+                    Войти
+                </button>
+                <a href="{% url 'auth:register' %}" class="btn-register-link">
+                    <button class="btn-register" type="button">
+                        Регистрация
+                    </button>
+                </a>
+            </div>
+        </form>
+    </div>
 </div>
-{% endif %}
 
-</div>
-
-{% endfor %}
-
-<button type="submit">
-Войти
-</button>
-
-</form>
-
-<a href="{% url 'auth:register' %}">
-Регистрация
-</a>
-
-<br>
-
-<a href="{% url 'auth:forgot_password' %}">
-Забыли пароль?
-</a>
-
-
-<style>
-
-.form-group{
-margin-bottom:15px;
-}
-
-input{
-width:250px;
-padding:10px;
-border-radius:6px;
-border:1px solid #ccc;
-}
-
-.error{
-color:red;
-font-size:14px;
-}
-
-button{
-padding:10px 20px;
-background:#4CAF50;
-border:none;
-border-radius:6px;
-color:white;
-cursor:pointer;
-}
-
-</style>
+</body>
+</html>
