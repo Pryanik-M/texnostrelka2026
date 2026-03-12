@@ -6,6 +6,7 @@ import {
   FlatList,
   RefreshControl,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -13,6 +14,9 @@ import { useNavigation } from '@react-navigation/native';
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import { Subscription } from '../types';
 import { CATEGORY_LABELS } from '../constants/categories';
+import { ScreenBackground } from '../components/ScreenBackground';
+import { Theme } from '../theme';
+import { CatSticker } from '../components/CatSticker';
 
 const formatCurrency = (value: number) => {
   return `${value.toLocaleString('ru-RU')} ₽/мес`;
@@ -57,12 +61,28 @@ const SubscriptionItem: React.FC<{ item: Subscription; onPress: () => void }> = 
 
       <View style={styles.cardFooter}>
         <View style={styles.badgeRow}>
-          <View style={[styles.dot, isDanger && { backgroundColor: '#f97373' }]} />
-          <Text style={[styles.nextChargeLabel, isDanger && { color: '#f97373' }]}>
+          <View
+            style={[
+              styles.dot,
+              isDanger && { backgroundColor: Theme.colors.danger },
+            ]}
+          />
+          <Text
+            style={[
+              styles.nextChargeLabel,
+              isDanger && { color: Theme.colors.danger },
+            ]}
+          >
             Следующее списание:{' '}
-            <Text style={{ fontWeight: '600' }}>{formatDate(item.nextChargeDate)}</Text>
+            <Text style={{ fontWeight: '600' }}>
+              {formatDate(item.nextChargeDate)}
+            </Text>
             {days !== null && days >= 0 && (
-              <Text style={{ color: isDanger ? '#fecaca' : '#9ca3af' }}>
+              <Text
+                style={{
+                  color: isDanger ? '#ffd1d1' : Theme.colors.textMuted,
+                }}
+              >
                 {`  (через ${days} д.)`}
               </Text>
             )}
@@ -100,9 +120,20 @@ export const HomeScreen: React.FC = () => {
   );
 
   const handleAddPress = () => {
-    navigation
-      .getParent()
-      ?.navigate('SubscriptionForm' as never, { subscriptionId: undefined } as never);
+    Alert.alert('Добавить подписку', 'Выберите источник', [
+      {
+        text: 'Новая',
+        onPress: () =>
+          navigation
+            .getParent()
+            ?.navigate('SubscriptionForm' as never, { subscriptionId: undefined } as never),
+      },
+      {
+        text: 'Из кандидатов',
+        onPress: () => navigation.getParent()?.navigate('Candidates' as never),
+      },
+      { text: 'Отмена', style: 'cancel' },
+    ]);
   };
 
   const renderItem = ({ item }: { item: Subscription }) => (
@@ -111,65 +142,69 @@ export const HomeScreen: React.FC = () => {
       onPress={() =>
         navigation
           .getParent()
-          ?.navigate(
-            'SubscriptionDetail' as never,
-            { subscriptionId: item.id } as never,
-          )
+          ?.navigate('SubscriptionDetail' as never, { subscriptionId: item.id } as never)
       }
     />
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>Мои подписки</Text>
-          <Text style={styles.subtitle}>Контролируйте регулярные расходы</Text>
-        </View>
-        <View style={styles.totalContainer}>
-          <Text style={styles.totalLabel}>Всего в месяц</Text>
-          <Text style={styles.totalValue}>{formatCurrency(totalPerMonth)}</Text>
-        </View>
-      </View>
-
-      <FlatList
-        data={subscriptions}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={[
-          styles.listContent,
-          !subscriptions.length && { flex: 1, justifyContent: 'center' },
-        ]}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing || isLoading}
-            onRefresh={onRefresh}
-            tintColor="#38bdf8"
-            colors={['#38bdf8']}
-          />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="card-outline" size={40} color="#4b5563" />
-            <Text style={styles.emptyTitle}>Пока нет подписок</Text>
-            <Text style={styles.emptySubtitle}>
-              Нажмите на кнопку «+», чтобы добавить первую подписку.
+    <ScreenBackground>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.title}>Мои подписки</Text>
+            <Text style={styles.subtitle}>
+              Контролируйте регулярные расходы без лишней суеты
             </Text>
           </View>
-        }
-      />
+          <View style={styles.totalContainer}>
+            <Text style={styles.totalLabel}>Всего в месяц</Text>
+            <Text style={styles.totalValue}>{formatCurrency(totalPerMonth)}</Text>
+          </View>
+        </View>
 
-      <TouchableOpacity style={styles.fab} onPress={handleAddPress} activeOpacity={0.85}>
-        <Ionicons name="add" size={28} color="#020617" />
-      </TouchableOpacity>
-    </View>
+        <FlatList
+          data={subscriptions}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          contentContainerStyle={[
+            styles.listContent,
+            !subscriptions.length && { flex: 1, justifyContent: 'center' },
+          ]}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing || isLoading}
+              onRefresh={onRefresh}
+              tintColor={Theme.colors.accent}
+              colors={[Theme.colors.accent]}
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <CatSticker
+                size={96}
+                color={Theme.colors.textPrimary}
+                accent={Theme.colors.accent}
+              />
+              <Text style={styles.emptyTitle}>Пока нет подписок</Text>
+              <Text style={styles.emptySubtitle}>
+                Нажмите на кнопку «+», чтобы добавить первую подписку.
+              </Text>
+            </View>
+          }
+        />
+
+        <TouchableOpacity style={styles.fab} onPress={handleAddPress} activeOpacity={0.85}>
+          <Ionicons name="add" size={28} color={Theme.colors.background} />
+        </TouchableOpacity>
+      </View>
+    </ScreenBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#020617',
   },
   header: {
     paddingHorizontal: 20,
@@ -182,11 +217,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#e5e7eb',
+    color: Theme.colors.textPrimary,
   },
   subtitle: {
     marginTop: 4,
-    color: '#9ca3af',
+    color: Theme.colors.textSecondary,
     fontSize: 13,
   },
   totalContainer: {
@@ -194,25 +229,25 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: Theme.colors.textSecondary,
   },
   totalValue: {
     marginTop: 4,
     fontSize: 18,
     fontWeight: '700',
-    color: '#38bdf8',
+    color: Theme.colors.accent,
   },
   listContent: {
     paddingHorizontal: 16,
     paddingBottom: 80,
   },
   card: {
-    backgroundColor: '#020617',
-    borderRadius: 18,
+    backgroundColor: Theme.colors.surface,
+    borderRadius: Theme.radii.lg,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#111827',
+    borderColor: Theme.colors.border,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -223,17 +258,17 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#e5e7eb',
+    color: Theme.colors.textPrimary,
   },
   cardCategory: {
     marginTop: 4,
     fontSize: 12,
-    color: '#9ca3af',
+    color: Theme.colors.textSecondary,
   },
   cardPrice: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#f97316',
+    color: Theme.colors.accentWarm,
   },
   cardFooter: {
     flexDirection: 'row',
@@ -248,12 +283,12 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 999,
-    backgroundColor: '#22c55e',
+    backgroundColor: Theme.colors.accent,
     marginRight: 8,
   },
   nextChargeLabel: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: Theme.colors.textSecondary,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -263,12 +298,12 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 18,
     fontWeight: '600',
-    color: '#e5e7eb',
+    color: Theme.colors.textPrimary,
   },
   emptySubtitle: {
     marginTop: 4,
     fontSize: 13,
-    color: '#9ca3af',
+    color: Theme.colors.textSecondary,
     textAlign: 'center',
   },
   fab: {
@@ -278,14 +313,13 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 999,
-    backgroundColor: '#38bdf8',
+    backgroundColor: Theme.colors.accent,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#0ea5e9',
+    shadowColor: Theme.colors.accent,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.35,
     shadowRadius: 16,
     elevation: 8,
   },
 });
-

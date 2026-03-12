@@ -385,6 +385,59 @@ def ignore_candidate_api(request, candidate_id):
 
 
 @csrf_exempt
+def create_from_candidate_api(request, candidate_id):
+    auth_error = _require_auth(request)
+    if auth_error:
+        return auth_error
+    if request.method != 'POST':
+        return JsonResponse({"detail": "Method not allowed"}, status=405)
+
+    candidate = EmailSubscriptionCandidate.objects.filter(id=candidate_id, user=request.user).first()
+    if not candidate:
+        return JsonResponse({"detail": "Not found"}, status=404)
+
+    data = _json_body(request)
+    category_id = data.get('category')
+    category = Category.objects.filter(id=category_id).first() if category_id else None
+
+    sub = Subscription.objects.create(
+        user=request.user,
+        name=data.get('name') or candidate.detected_service or 'Подписка',
+        category=category,
+        description=data.get('description') or '',
+        price=data.get('price') or 0,
+        currency=data.get('currency') or 'RUB',
+        billing_period=data.get('billing_period') or 'month',
+        start_date=_parse_date(data.get('start_date')),
+        next_payment_date=_parse_date(data.get('next_payment_date')),
+        status=data.get('status') or 'active',
+        service_url=data.get('service_url') or '',
+        notes=data.get('notes') or '',
+    )
+
+    candidate.is_processed = True
+    candidate.save()
+
+    return JsonResponse({
+        "message": "created",
+        "subscription": {
+            "id": sub.id,
+            "name": sub.name,
+            "category": sub.category_id,
+            "description": sub.description,
+            "price": str(sub.price),
+            "currency": sub.currency,
+            "billing_period": sub.billing_period,
+            "start_date": _date_iso(sub.start_date),
+            "next_payment_date": _date_iso(sub.next_payment_date),
+            "status": sub.status,
+            "service_url": sub.service_url,
+            "notes": sub.notes,
+        }
+    })
+
+
+@csrf_exempt
 def email_sync_api(request):
     auth_error = _require_auth(request)
     if auth_error:

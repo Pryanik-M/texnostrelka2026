@@ -6,6 +6,7 @@ import { HomeScreen } from './HomeScreen';
 import { AnalyticsScreen } from './AnalyticsScreen';
 import { NotificationsScreen } from './NotificationsScreen';
 import { ProfileScreen } from './ProfileScreen';
+import { Theme } from '../theme';
 
 export type MainTabParamList = {
   Subscriptions: undefined;
@@ -24,11 +25,18 @@ export const MainTabs: React.FC = () => {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#020617',
-          borderTopColor: '#111827',
+          backgroundColor: Theme.colors.surfaceAlt,
+          borderTopColor: Theme.colors.border,
+          height: 64,
+          paddingBottom: 8,
+          paddingTop: 6,
         },
-        tabBarActiveTintColor: '#38bdf8',
-        tabBarInactiveTintColor: '#6b7280',
+        tabBarActiveTintColor: Theme.colors.accent,
+        tabBarInactiveTintColor: Theme.colors.textMuted,
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
+        },
         tabBarIcon: ({ color, size }) => {
           let iconName: keyof typeof Ionicons.glyphMap = 'home';
 

@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
@@ -21,6 +22,8 @@ import {
   registerDevice,
   testPush,
 } from '../api/client';
+import { ScreenBackground } from '../components/ScreenBackground';
+import { Theme } from '../theme';
 
 export const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -156,124 +159,135 @@ export const ProfileScreen: React.FC = () => {
   }, [candidatesCount]);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Профиль</Text>
-      <Text style={styles.subtitle}>Управляйте подключенной почтой, уведомлениями и кандидатами.</Text>
+    <ScreenBackground>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        <Text style={styles.title}>Профиль</Text>
+        <Text style={styles.subtitle}>
+          Управляйте подключенной почтой, уведомлениями и кандидатами.
+        </Text>
 
-      {loading && (
-        <View style={styles.loadingRow}>
-          <ActivityIndicator size="small" color="#38bdf8" />
-          <Text style={styles.loadingText}>Загружаем профиль...</Text>
-        </View>
-      )}
-
-      {profile && (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>{profile.username}</Text>
-          <Text style={styles.cardMeta}>Email для входа: {profile.email}</Text>
-          <Text style={styles.cardMeta}>Почта для импорта: {profile.emailAccount ?? 'не подключена'}</Text>
-        </View>
-      )}
-
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Почта</Text>
-        {!hasEmail ? (
-          <>
-            <Text style={styles.sectionHint}>Введите пароль приложения для подключения Gmail.</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Пароль приложения"
-              placeholderTextColor="#6b7280"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-            />
-            <TouchableOpacity
-              style={[styles.primaryButton, connecting && { opacity: 0.7 }]}
-              onPress={handleConnectEmail}
-              disabled={connecting}
-            >
-              <Text style={styles.primaryButtonText}>
-                {connecting ? 'Подключаем...' : 'Подключить почту'}
-              </Text>
-            </TouchableOpacity>
-          </>
-        ) : (
-          <>
-            <Text style={styles.sectionHint}>Запускайте синхронизацию и отключайте почту при необходимости.</Text>
-            <TouchableOpacity
-              style={[styles.primaryButton, syncing && { opacity: 0.7 }]}
-              onPress={handleSyncEmail}
-              disabled={syncing}
-            >
-              <Text style={styles.primaryButtonText}>
-                {syncing ? 'Синхронизируем...' : 'Синхронизировать почту'}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.secondaryButton, disconnecting && { opacity: 0.7 }]}
-              onPress={handleDisconnectEmail}
-              disabled={disconnecting}
-            >
-              <Text style={styles.secondaryButtonText}>
-                {disconnecting ? 'Отключаем...' : 'Отключить почту'}
-              </Text>
-            </TouchableOpacity>
-          </>
+        {loading && (
+          <View style={styles.loadingRow}>
+            <ActivityIndicator size="small" color={Theme.colors.accent} />
+            <Text style={styles.loadingText}>Загружаем профиль...</Text>
+          </View>
         )}
-      </View>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Кандидаты</Text>
-        <Text style={styles.sectionHint}>Кандидаты приходят после анализа почты.</Text>
-        <TouchableOpacity
-          style={[styles.primaryButton, !candidatesCount && { opacity: 0.6 }]}
-          onPress={() => navigation.getParent()?.navigate('Candidates' as never)}
-          disabled={!candidatesCount}
-        >
-          <Text style={styles.primaryButtonText}>{candidatesLabel}</Text>
-        </TouchableOpacity>
-      </View>
+        {profile && (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>{profile.username}</Text>
+            <Text style={styles.cardMeta}>Email для входа: {profile.email}</Text>
+            <Text style={styles.cardMeta}>
+              Почта для импорта: {profile.emailAccount ?? 'не подключена'}
+            </Text>
+          </View>
+        )}
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Уведомления</Text>
-        <Text style={styles.sectionHint}>Зарегистрируйте устройство для push и отправьте тест.</Text>
-        <TouchableOpacity
-          style={[styles.primaryButton, pushRegistering && { opacity: 0.7 }]}
-          onPress={handleRegisterPush}
-          disabled={pushRegistering}
-        >
-          <Text style={styles.primaryButtonText}>
-            {pushRegistering ? 'Регистрируем...' : 'Зарегистрировать устройство'}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Почта</Text>
+          {!hasEmail ? (
+            <>
+              <Text style={styles.sectionHint}>
+                Введите пароль приложения для подключения Gmail.
+              </Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Пароль приложения"
+                placeholderTextColor={Theme.colors.textMuted}
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+              />
+              <TouchableOpacity
+                style={[styles.primaryButton, connecting && { opacity: 0.7 }]}
+                onPress={handleConnectEmail}
+                disabled={connecting}
+              >
+                <Text style={styles.primaryButtonText}>
+                  {connecting ? 'Подключаем...' : 'Подключить почту'}
+                </Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <Text style={styles.sectionHint}>
+                Запускайте синхронизацию и отключайте почту при необходимости.
+              </Text>
+              <TouchableOpacity
+                style={[styles.primaryButton, syncing && { opacity: 0.7 }]}
+                onPress={handleSyncEmail}
+                disabled={syncing}
+              >
+                <Text style={styles.primaryButtonText}>
+                  {syncing ? 'Синхронизируем...' : 'Синхронизировать почту'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.secondaryButton, disconnecting && { opacity: 0.7 }]}
+                onPress={handleDisconnectEmail}
+                disabled={disconnecting}
+              >
+                <Text style={styles.secondaryButtonText}>
+                  {disconnecting ? 'Отключаем...' : 'Отключить почту'}
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Кандидаты</Text>
+          <Text style={styles.sectionHint}>Кандидаты приходят после анализа почты.</Text>
+          <TouchableOpacity
+            style={[styles.primaryButton, !candidatesCount && { opacity: 0.6 }]}
+            onPress={() => navigation.getParent()?.navigate('Candidates' as never)}
+            disabled={!candidatesCount}
+          >
+            <Text style={styles.primaryButtonText}>{candidatesLabel}</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Уведомления</Text>
+          <Text style={styles.sectionHint}>
+            Зарегистрируйте устройство для push и отправьте тест.
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.secondaryButton} onPress={handleTestPush}>
-          <Text style={styles.secondaryButtonText}>Тестовое уведомление</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity
+            style={[styles.primaryButton, pushRegistering && { opacity: 0.7 }]}
+            onPress={handleRegisterPush}
+            disabled={pushRegistering}
+          >
+            <Text style={styles.primaryButtonText}>
+              {pushRegistering ? 'Регистрируем...' : 'Зарегистрировать устройство'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.secondaryButton} onPress={handleTestPush}>
+            <Text style={styles.secondaryButtonText}>Тестовое уведомление</Text>
+          </TouchableOpacity>
+        </View>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutButtonText}>Выйти из аккаунта</Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutButtonText}>Выйти из аккаунта</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </ScreenBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#020617',
     paddingHorizontal: 20,
     paddingTop: 20,
+    paddingBottom: 40,
   },
   title: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#e5e7eb',
+    color: Theme.colors.textPrimary,
   },
   subtitle: {
     marginTop: 4,
-    color: '#9ca3af',
+    color: Theme.colors.textSecondary,
     fontSize: 13,
     marginBottom: 16,
   },
@@ -284,83 +298,83 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginLeft: 8,
-    color: '#9ca3af',
+    color: Theme.colors.textSecondary,
     fontSize: 12,
   },
   card: {
     marginBottom: 14,
-    borderRadius: 18,
-    backgroundColor: '#020617',
+    borderRadius: Theme.radii.lg,
+    backgroundColor: Theme.colors.surface,
     borderWidth: 1,
-    borderColor: '#111827',
+    borderColor: Theme.colors.border,
     padding: 16,
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#e5e7eb',
+    color: Theme.colors.textPrimary,
   },
   cardMeta: {
     marginTop: 4,
     fontSize: 13,
-    color: '#9ca3af',
+    color: Theme.colors.textSecondary,
   },
   sectionTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#e5e7eb',
+    color: Theme.colors.textPrimary,
   },
   sectionHint: {
     marginTop: 6,
     fontSize: 12,
-    color: '#9ca3af',
+    color: Theme.colors.textSecondary,
   },
   input: {
     marginTop: 12,
-    borderRadius: 12,
+    borderRadius: Theme.radii.sm,
     borderWidth: 1,
-    borderColor: '#1f2937',
+    borderColor: Theme.colors.border,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    color: '#e5e7eb',
+    color: Theme.colors.textPrimary,
     fontSize: 15,
-    backgroundColor: '#020617',
+    backgroundColor: Theme.colors.surfaceAlt,
   },
   primaryButton: {
     marginTop: 12,
-    borderRadius: 14,
-    backgroundColor: '#38bdf8',
+    borderRadius: Theme.radii.md,
+    backgroundColor: Theme.colors.accent,
     paddingVertical: 12,
     alignItems: 'center',
   },
   primaryButtonText: {
-    color: '#020617',
+    color: Theme.colors.background,
     fontSize: 14,
     fontWeight: '700',
   },
   secondaryButton: {
     marginTop: 10,
-    borderRadius: 14,
+    borderRadius: Theme.radii.md,
     borderWidth: 1,
-    borderColor: '#38bdf8',
+    borderColor: Theme.colors.accent,
     paddingVertical: 11,
     alignItems: 'center',
   },
   secondaryButtonText: {
-    color: '#38bdf8',
+    color: Theme.colors.accent,
     fontSize: 13,
     fontWeight: '600',
   },
   logoutButton: {
     marginTop: 8,
-    borderRadius: 14,
+    borderRadius: Theme.radii.md,
     borderWidth: 1,
-    borderColor: '#f97373',
+    borderColor: Theme.colors.danger,
     paddingVertical: 12,
     alignItems: 'center',
   },
   logoutButtonText: {
-    color: '#f97373',
+    color: Theme.colors.danger,
     fontSize: 14,
     fontWeight: '600',
   },

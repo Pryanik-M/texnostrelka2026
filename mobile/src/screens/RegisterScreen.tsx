@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,8 @@ import * as SecureStore from 'expo-secure-store';
 
 import { register, registerVerify } from '../api/client';
 import { AUTH_TOKEN_KEY, RootStackParamList } from '../navigation/AppNavigator';
+import { ScreenBackground } from '../components/ScreenBackground';
+import { Theme } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
@@ -73,139 +75,180 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <View style={styles.gradientBackground} />
-      <View style={styles.content}>
-        <Text style={styles.badge}>Регистрация</Text>
-        <Text style={styles.title}>Создайте аккаунт</Text>
-        <Text style={styles.subtitle}>
-          Новый API использует код подтверждения на email.
-        </Text>
+    <ScreenBackground>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <View style={styles.content}>
+          <Text style={styles.badge}>Регистрация</Text>
+          <Text style={styles.title}>Создайте аккаунт</Text>
+          <Text style={styles.subtitle}>
+            Новый API использует код подтверждения на email.
+          </Text>
 
-        <View style={styles.card}>
-          {step === 'register' ? (
-            <>
-              <Text style={styles.cardTitle}>Шаг 1: данные</Text>
+          <View style={styles.card}>
+            {step === 'register' ? (
+              <>
+                <Text style={styles.cardTitle}>Шаг 1: данные</Text>
 
-              <Text style={styles.label}>Username</Text>
-              <Controller
-                control={control}
-                name="username"
-                render={({ field: { value, onChange, onBlur } }) => (
-                  <TextInput
-                    style={[styles.input, errors.username && styles.inputError]}
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    placeholder="ivanov_ivan"
-                    placeholderTextColor="#6b7280"
-                    autoCapitalize="none"
-                  />
+                <Text style={styles.label}>Username</Text>
+                <Controller
+                  control={control}
+                  name="username"
+                  render={({ field: { value, onChange, onBlur } }) => (
+                    <TextInput
+                      style={[styles.input, errors.username && styles.inputError]}
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      placeholder="ivanov_ivan"
+                      placeholderTextColor={Theme.colors.textMuted}
+                      autoCapitalize="none"
+                    />
+                  )}
+                />
+                {errors.username && (
+                  <Text style={styles.errorText}>{errors.username.message}</Text>
                 )}
-              />
-              {errors.username && <Text style={styles.errorText}>{errors.username.message}</Text>}
 
-              <Text style={[styles.label, { marginTop: 16 }]}>Email</Text>
-              <Controller
-                control={control}
-                name="email"
-                render={({ field: { value, onChange, onBlur } }) => (
-                  <TextInput
-                    style={[styles.input, errors.email && styles.inputError]}
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    placeholder="you@example.com"
-                    placeholderTextColor="#6b7280"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                  />
+                <Text style={[styles.label, { marginTop: 16 }]}>Email</Text>
+                <Controller
+                  control={control}
+                  name="email"
+                  render={({ field: { value, onChange, onBlur } }) => (
+                    <TextInput
+                      style={[styles.input, errors.email && styles.inputError]}
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      placeholder="you@example.com"
+                      placeholderTextColor={Theme.colors.textMuted}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                    />
+                  )}
+                />
+                {errors.email && (
+                  <Text style={styles.errorText}>{errors.email.message}</Text>
                 )}
-              />
-              {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
 
-              <Text style={[styles.label, { marginTop: 16 }]}>Пароль</Text>
-              <Controller
-                control={control}
-                name="password"
-                render={({ field: { value, onChange, onBlur } }) => (
-                  <TextInput
-                    style={[styles.input, errors.password && styles.inputError]}
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    placeholder="Минимум 8 символов, 1 заглавная, 1 цифра"
-                    placeholderTextColor="#6b7280"
-                    secureTextEntry
-                  />
+                <Text style={[styles.label, { marginTop: 16 }]}>Пароль</Text>
+                <Controller
+                  control={control}
+                  name="password"
+                  render={({ field: { value, onChange, onBlur } }) => (
+                    <TextInput
+                      style={[styles.input, errors.password && styles.inputError]}
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      placeholder="Минимум 8 символов, 1 заглавная, 1 цифра"
+                      placeholderTextColor={Theme.colors.textMuted}
+                      secureTextEntry
+                    />
+                  )}
+                />
+                {errors.password && (
+                  <Text style={styles.errorText}>{errors.password.message}</Text>
                 )}
-              />
-              {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
 
-              <TouchableOpacity style={[styles.button, isSubmitting && { opacity: 0.7 }]} onPress={handleSubmit(onRegister as any)} disabled={isSubmitting}>
-                <Text style={styles.buttonText}>{isSubmitting ? 'Отправляем...' : 'Получить код'}</Text>
-              </TouchableOpacity>
-            </>
-          ) : (
-            <>
-              <Text style={styles.cardTitle}>Шаг 2: код из email</Text>
-              <Text style={styles.label}>Код подтверждения</Text>
-              <TextInput
-                style={styles.input}
-                value={code}
-                onChangeText={setCode}
-                placeholder="123456"
-                placeholderTextColor="#6b7280"
-                keyboardType="number-pad"
-              />
-              <TouchableOpacity style={[styles.button, !code.trim() && { opacity: 0.7 }]} onPress={onVerify} disabled={!code.trim()}>
-                <Text style={styles.buttonText}>Подтвердить и войти</Text>
-              </TouchableOpacity>
-            </>
-          )}
+                <TouchableOpacity
+                  style={[styles.button, isSubmitting && { opacity: 0.7 }]}
+                  onPress={handleSubmit(onRegister as any)}
+                  disabled={isSubmitting}
+                >
+                  <Text style={styles.buttonText}>
+                    {isSubmitting ? 'Отправляем...' : 'Получить код'}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <Text style={styles.cardTitle}>Шаг 2: код из email</Text>
+                <Text style={styles.label}>Код подтверждения</Text>
+                <TextInput
+                  style={styles.input}
+                  value={code}
+                  onChangeText={setCode}
+                  placeholder="123456"
+                  placeholderTextColor={Theme.colors.textMuted}
+                  keyboardType="number-pad"
+                />
+                <TouchableOpacity
+                  style={[styles.button, !code.trim() && { opacity: 0.7 }]}
+                  onPress={onVerify}
+                  disabled={!code.trim()}
+                >
+                  <Text style={styles.buttonText}>Подтвердить и войти</Text>
+                </TouchableOpacity>
+              </>
+            )}
 
-          {serverError ? <Text style={styles.errorText}>{serverError}</Text> : null}
+            {serverError ? <Text style={styles.errorText}>{serverError}</Text> : null}
 
-          <TouchableOpacity style={styles.secondaryButton} onPress={() => navigation.navigate('Login')}>
-            <Text style={styles.secondaryButtonText}>Уже есть аккаунт? <Text style={{ color: '#38bdf8', fontWeight: '600' }}>Войти</Text></Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={() => navigation.navigate('Login')}
+            >
+              <Text style={styles.secondaryButtonText}>
+                Уже есть аккаунт? <Text style={styles.secondaryLink}>Войти</Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </ScreenBackground>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#020617' },
-  gradientBackground: {
-    position: 'absolute', top: -140, right: -80, width: 280, height: 280, borderRadius: 280,
-    backgroundColor: '#1e293b', opacity: 0.9,
-  },
+  container: { flex: 1 },
   content: { flex: 1, paddingHorizontal: 24, paddingTop: 72 },
   badge: {
-    alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999,
-    backgroundColor: '#0f172a', color: '#9ca3af', fontSize: 12,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: Theme.colors.surfaceAlt,
+    color: Theme.colors.textSecondary,
+    fontSize: 12,
   },
-  title: { fontSize: 30, fontWeight: '800', color: '#e5e7eb', marginTop: 16 },
-  subtitle: { marginTop: 8, color: '#9ca3af', fontSize: 14 },
+  title: { fontSize: 30, fontWeight: '800', color: Theme.colors.textPrimary, marginTop: 16 },
+  subtitle: { marginTop: 8, color: Theme.colors.textSecondary, fontSize: 14 },
   card: {
-    marginTop: 32, padding: 20, borderRadius: 24, backgroundColor: '#020617', borderWidth: 1,
-    borderColor: '#111827', shadowColor: '#000', shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.25, shadowRadius: 20, elevation: 10,
+    marginTop: 32,
+    padding: 20,
+    borderRadius: Theme.radii.xl,
+    backgroundColor: Theme.colors.surface,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+    ...Theme.shadow.soft,
   },
-  cardTitle: { fontSize: 18, fontWeight: '600', color: '#e5e7eb', marginBottom: 16 },
-  label: { fontSize: 13, color: '#9ca3af', marginBottom: 4 },
+  cardTitle: { fontSize: 18, fontWeight: '600', color: Theme.colors.textPrimary, marginBottom: 16 },
+  label: { fontSize: 13, color: Theme.colors.textSecondary, marginBottom: 4 },
   input: {
-    borderRadius: 12, borderWidth: 1, borderColor: '#1f2937', paddingHorizontal: 12,
-    paddingVertical: 10, color: '#e5e7eb', fontSize: 15, backgroundColor: '#020617',
+    borderRadius: Theme.radii.sm,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    color: Theme.colors.textPrimary,
+    fontSize: 15,
+    backgroundColor: Theme.colors.surfaceAlt,
   },
-  inputError: { borderColor: '#f97373' },
-  errorText: { marginTop: 8, fontSize: 12, color: '#f97373' },
+  inputError: { borderColor: Theme.colors.danger },
+  errorText: { marginTop: 8, fontSize: 12, color: Theme.colors.danger },
   button: {
-    marginTop: 24, borderRadius: 14, backgroundColor: '#22c55e', paddingVertical: 12,
+    marginTop: 24,
+    borderRadius: Theme.radii.md,
+    backgroundColor: Theme.colors.accentStrong,
+    paddingVertical: 12,
     alignItems: 'center',
+    ...Theme.shadow.glow,
   },
-  buttonText: { color: '#020617', fontSize: 16, fontWeight: '700' },
+  buttonText: { color: Theme.colors.background, fontSize: 16, fontWeight: '700' },
   secondaryButton: { marginTop: 12, alignItems: 'center' },
-  secondaryButtonText: { color: '#9ca3af', fontSize: 13 },
+  secondaryButtonText: { color: Theme.colors.textSecondary, fontSize: 13 },
+  secondaryLink: { color: Theme.colors.accent, fontWeight: '600' },
 });

@@ -18,8 +18,11 @@ import * as yup from 'yup';
 
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
+import { createFromCandidate } from '../api/client';
 import { CATEGORIES } from '../constants/categories';
 import { Subscription, SubscriptionCategory } from '../types';
+import { ScreenBackground } from '../components/ScreenBackground';
+import { Theme } from '../theme';
 
 type SubscriptionFormRouteProp = RouteProp<RootStackParamList, 'SubscriptionForm'>;
 
@@ -55,13 +58,15 @@ const schema = yup.object({
 export const SubscriptionFormScreen: React.FC = () => {
   const route = useRoute<SubscriptionFormRouteProp>();
   const navigation = useNavigation();
-  const { subscriptions, add, update, remove } = useSubscriptionStore();
+  const { subscriptions, add, update, remove, fetchSubscriptions } = useSubscriptionStore();
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const editingSubscription: Subscription | undefined = useMemo(
     () => subscriptions.find((s) => s.id === route.params?.subscriptionId),
     [subscriptions, route.params],
   );
+  const candidateId = route.params?.candidateId;
+  const candidateName = route.params?.candidateName;
 
   const {
     control,
@@ -72,7 +77,7 @@ export const SubscriptionFormScreen: React.FC = () => {
     resolver: yupResolver(schema),
     mode: 'onChange',
     defaultValues: {
-      name: editingSubscription?.name ?? '',
+      name: editingSubscription?.name ?? candidateName ?? '',
       price: editingSubscription ? String(editingSubscription.price) : '',
       billingPeriod: editingSubscription?.billingPeriod ?? 'month',
       nextChargeDate: editingSubscription
@@ -109,6 +114,24 @@ export const SubscriptionFormScreen: React.FC = () => {
       notes: values.notes.trim() || undefined,
     };
 
+    if (candidateId) {
+      const response = await createFromCandidate(candidateId, {
+        name: payload.name ?? candidateName ?? 'Подписка',
+        price: payload.price ?? 0,
+        currency: 'RUB',
+        billing_period: payload.billingPeriod ?? 'month',
+        start_date: new Date().toISOString().slice(0, 10),
+        next_payment_date: payload.nextChargeDate ?? new Date().toISOString().slice(0, 10),
+        service_url: payload.url ?? '',
+        notes: payload.notes ?? '',
+      });
+      if (response?.subscription) {
+        await fetchSubscriptions();
+        navigation.goBack();
+      }
+      return;
+    }
+
     if (editingSubscription) {
       const updated = await update(editingSubscription.id, payload);
       if (updated) {
@@ -124,21 +147,17 @@ export const SubscriptionFormScreen: React.FC = () => {
 
   const handleDelete = () => {
     if (!editingSubscription) return;
-    Alert.alert(
-      'Удалить подписку',
-      `Вы уверены, что хотите удалить «${editingSubscription.name}»?`,
-      [
-        { text: 'Отмена', style: 'cancel' },
-        {
-          text: 'Удалить',
-          style: 'destructive',
-          onPress: async () => {
-            await remove(editingSubscription.id);
-            navigation.goBack();
-          },
+    Alert.alert('Удалить подписку', `Вы уверены, что хотите удалить «${editingSubscription.name}»?`, [
+      { text: 'Отмена', style: 'cancel' },
+      {
+        text: 'Удалить',
+        style: 'destructive',
+        onPress: async () => {
+          await remove(editingSubscription.id);
+          navigation.goBack();
         },
-      ],
-    );
+      },
+    ]);
   };
 
   const formattedDateLabel = (date: Date) =>
@@ -149,244 +168,226 @@ export const SubscriptionFormScreen: React.FC = () => {
     });
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
+    <ScreenBackground>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Text style={styles.title}>
-          {editingSubscription ? 'Редактирование подписки' : 'Новая подписка'}
-        </Text>
-        <Text style={styles.subtitle}>
-          Заполните детали сервиса, чтобы мы могли учитывать его в аналитике.
-        </Text>
-
-        <Text style={styles.label}>Название сервиса</Text>
-        <Controller
-          control={control}
-          name="name"
-          render={({ field: { value, onChange, onBlur } }) => (
-            <TextInput
-              style={[styles.input, errors.name && styles.inputError]}
-              value={value}
-              onChangeText={onChange}
-              onBlur={onBlur}
-              placeholder="Например, Netflix, Яндекс Плюс"
-              placeholderTextColor="#6b7280"
-            />
-          )}
-        />
-        {errors.name && <Text style={styles.errorText}>{errors.name.message}</Text>}
-
-        <View style={styles.row}>
-          <View style={[styles.column, { flex: 1.2 }]}>
-            <Text style={styles.label}>Стоимость (руб)</Text>
-            <Controller
-              control={control}
-              name="price"
-              render={({ field: { value, onChange, onBlur } }) => (
-                <TextInput
-                  style={[styles.input, errors.price && styles.inputError]}
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  placeholder="799"
-                  placeholderTextColor="#6b7280"
-                  keyboardType="numeric"
-                />
-              )}
-            />
-            {errors.price && (
-              <Text style={styles.errorText}>{errors.price.message}</Text>
-            )}
-          </View>
-
-          <View style={[styles.column, { flex: 1 }]}>
-            <Text style={styles.label}>Период</Text>
-            <Controller
-              control={control}
-              name="billingPeriod"
-              render={({ field: { value, onChange } }) => (
-                <View style={styles.segmentContainer}>
-                  <TouchableOpacity
-                    style={[
-                      styles.segment,
-                      value === 'month' && styles.segmentSelected,
-                    ]}
-                    onPress={() => onChange('month')}
-                  >
-                    <Text
-                      style={[
-                        styles.segmentText,
-                        value === 'month' && styles.segmentTextSelected,
-                      ]}
-                    >
-                      Ежемесячно
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.segment,
-                      value === 'year' && styles.segmentSelected,
-                    ]}
-                    onPress={() => onChange('year')}
-                  >
-                    <Text
-                      style={[
-                        styles.segmentText,
-                        value === 'year' && styles.segmentTextSelected,
-                      ]}
-                    >
-                      Ежегодно
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            />
-          </View>
-        </View>
-
-        <Text style={styles.label}>Дата следующего списания</Text>
-        <Controller
-          control={control}
-          name="nextChargeDate"
-          render={({ field: { value } }) => (
-            <>
-              <TouchableOpacity
-                style={styles.dateInput}
-                onPress={() => setShowDatePicker(true)}
-              >
-                <Text style={styles.dateText}>{formattedDateLabel(value)}</Text>
-              </TouchableOpacity>
-              {showDatePicker && (
-                <DateTimePicker
-                  value={value}
-                  mode="date"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={(_, selectedDate) => {
-                    setShowDatePicker(false);
-                    if (selectedDate) {
-                      setValue('nextChargeDate', selectedDate, {
-                        shouldDirty: true,
-                        shouldValidate: true,
-                      });
-                    }
-                  }}
-                />
-              )}
-            </>
-          )}
-        />
-        {errors.nextChargeDate && (
-          <Text style={styles.errorText}>{errors.nextChargeDate.message}</Text>
-        )}
-
-        <Text style={styles.label}>Категория</Text>
-        <Controller
-          control={control}
-          name="category"
-          render={({ field: { value, onChange } }) => (
-            <View style={styles.categoryContainer}>
-              {CATEGORIES.map((cat) => {
-                const selected = value === cat.id;
-                return (
-                  <TouchableOpacity
-                    key={cat.id}
-                    style={[
-                      styles.categoryChip,
-                      selected && {
-                        backgroundColor: cat.color,
-                        borderColor: cat.color,
-                      },
-                    ]}
-                    onPress={() => onChange(cat.id)}
-                  >
-                    <Text
-                      style={[
-                        styles.categoryChipText,
-                        selected && { color: '#020617', fontWeight: '700' },
-                      ]}
-                    >
-                      {cat.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          )}
-        />
-        {errors.category && (
-          <Text style={styles.errorText}>{errors.category.message}</Text>
-        )}
-
-        <Text style={styles.label}>Ссылка на сервис</Text>
-        <Controller
-          control={control}
-          name="url"
-          render={({ field: { value, onChange, onBlur } }) => (
-            <TextInput
-              style={[styles.input, errors.url && styles.inputError]}
-              value={value}
-              onChangeText={onChange}
-              onBlur={onBlur}
-              placeholder="https://service.com/account"
-              placeholderTextColor="#6b7280"
-              autoCapitalize="none"
-            />
-          )}
-        />
-        {errors.url && <Text style={styles.errorText}>{errors.url.message}</Text>}
-
-        <Text style={styles.label}>Заметки об использовании</Text>
-        <Controller
-          control={control}
-          name="notes"
-          render={({ field: { value, onChange, onBlur } }) => (
-            <TextInput
-              style={[styles.input, styles.notesInput]}
-              value={value}
-              onChangeText={onChange}
-              onBlur={onBlur}
-              placeholder="Например, для семьи / рабочего проекта / учебы"
-              placeholderTextColor="#6b7280"
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
-          )}
-        />
-
-        <TouchableOpacity
-          style={[styles.primaryButton, isSubmitting && { opacity: 0.7 }]}
-          onPress={handleSubmit(onSubmit)}
-          disabled={isSubmitting}
-        >
-          <Text style={styles.primaryButtonText}>
-            {isSubmitting
-              ? editingSubscription
-                ? 'Сохраняем...'
-                : 'Добавляем...'
-              : 'Сохранить'}
+        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+          <Text style={styles.title}>
+            {editingSubscription ? 'Редактирование подписки' : 'Новая подписка'}
           </Text>
-        </TouchableOpacity>
+          <Text style={styles.subtitle}>
+            Заполните детали сервиса, чтобы мы могли учитывать его в аналитике.
+          </Text>
 
-        {editingSubscription && (
-          <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-            <Text style={styles.deleteButtonText}>Удалить подписку</Text>
+          <Text style={styles.label}>Название сервиса</Text>
+          <Controller
+            control={control}
+            name="name"
+            render={({ field: { value, onChange, onBlur } }) => (
+              <TextInput
+                style={[styles.input, errors.name && styles.inputError]}
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                placeholder="Например, Netflix, Яндекс Плюс"
+                placeholderTextColor={Theme.colors.textMuted}
+              />
+            )}
+          />
+          {errors.name && <Text style={styles.errorText}>{errors.name.message}</Text>}
+
+          <View style={styles.row}>
+            <View style={[styles.column, { flex: 1.2 }]}>
+              <Text style={styles.label}>Стоимость (руб)</Text>
+              <Controller
+                control={control}
+                name="price"
+                render={({ field: { value, onChange, onBlur } }) => (
+                  <TextInput
+                    style={[styles.input, errors.price && styles.inputError]}
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    placeholder="799"
+                    placeholderTextColor={Theme.colors.textMuted}
+                    keyboardType="numeric"
+                  />
+                )}
+              />
+              {errors.price && <Text style={styles.errorText}>{errors.price.message}</Text>}
+            </View>
+
+            <View style={[styles.column, { flex: 1 }]}>
+              <Text style={styles.label}>Период</Text>
+              <Controller
+                control={control}
+                name="billingPeriod"
+                render={({ field: { value, onChange } }) => (
+                  <View style={styles.segmentContainer}>
+                    <TouchableOpacity
+                      style={[styles.segment, value === 'month' && styles.segmentSelected]}
+                      onPress={() => onChange('month')}
+                    >
+                      <Text
+                        style={[
+                          styles.segmentText,
+                          value === 'month' && styles.segmentTextSelected,
+                        ]}
+                      >
+                        Ежемесячно
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.segment, value === 'year' && styles.segmentSelected]}
+                      onPress={() => onChange('year')}
+                    >
+                      <Text
+                        style={[
+                          styles.segmentText,
+                          value === 'year' && styles.segmentTextSelected,
+                        ]}
+                      >
+                        Ежегодно
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              />
+            </View>
+          </View>
+
+          <Text style={styles.label}>Дата следующего списания</Text>
+          <Controller
+            control={control}
+            name="nextChargeDate"
+            render={({ field: { value } }) => (
+              <>
+                <TouchableOpacity style={styles.dateInput} onPress={() => setShowDatePicker(true)}>
+                  <Text style={styles.dateText}>{formattedDateLabel(value)}</Text>
+                </TouchableOpacity>
+                {showDatePicker && (
+                  <DateTimePicker
+                    value={value}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    onChange={(_, selectedDate) => {
+                      setShowDatePicker(false);
+                      if (selectedDate) {
+                        setValue('nextChargeDate', selectedDate, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        });
+                      }
+                    }}
+                  />
+                )}
+              </>
+            )}
+          />
+          {errors.nextChargeDate && (
+            <Text style={styles.errorText}>{errors.nextChargeDate.message}</Text>
+          )}
+
+          <Text style={styles.label}>Категория</Text>
+          <Controller
+            control={control}
+            name="category"
+            render={({ field: { value, onChange } }) => (
+              <View style={styles.categoryContainer}>
+                {CATEGORIES.map((cat) => {
+                  const selected = value === cat.id;
+                  return (
+                    <TouchableOpacity
+                      key={cat.id}
+                      style={[
+                        styles.categoryChip,
+                        selected && { backgroundColor: cat.color, borderColor: cat.color },
+                      ]}
+                      onPress={() => onChange(cat.id)}
+                    >
+                      <Text
+                        style={[
+                          styles.categoryChipText,
+                          selected && { color: Theme.colors.background, fontWeight: '700' },
+                        ]}
+                      >
+                        {cat.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
+          />
+          {errors.category && <Text style={styles.errorText}>{errors.category.message}</Text>}
+
+          <Text style={styles.label}>Ссылка на сервис</Text>
+          <Controller
+            control={control}
+            name="url"
+            render={({ field: { value, onChange, onBlur } }) => (
+              <TextInput
+                style={[styles.input, errors.url && styles.inputError]}
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                placeholder="https://service.com/account"
+                placeholderTextColor={Theme.colors.textMuted}
+                autoCapitalize="none"
+              />
+            )}
+          />
+          {errors.url && <Text style={styles.errorText}>{errors.url.message}</Text>}
+
+          <Text style={styles.label}>Заметки об использовании</Text>
+          <Controller
+            control={control}
+            name="notes"
+            render={({ field: { value, onChange, onBlur } }) => (
+              <TextInput
+                style={[styles.input, styles.notesInput]}
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                placeholder="Например, для семьи / рабочего проекта / учёбы"
+                placeholderTextColor={Theme.colors.textMuted}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+              />
+            )}
+          />
+
+          <TouchableOpacity
+            style={[styles.primaryButton, isSubmitting && { opacity: 0.7 }]}
+            onPress={handleSubmit(onSubmit)}
+            disabled={isSubmitting}
+          >
+            <Text style={styles.primaryButtonText}>
+              {isSubmitting
+                ? editingSubscription
+                  ? 'Сохраняем...'
+                  : 'Добавляем...'
+                : 'Сохранить'}
+            </Text>
           </TouchableOpacity>
-        )}
-      </ScrollView>
-    </KeyboardAvoidingView>
+
+          {editingSubscription && (
+            <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+              <Text style={styles.deleteButtonText}>Удалить подписку</Text>
+            </TouchableOpacity>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </ScreenBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#020617',
   },
   content: {
     paddingHorizontal: 20,
@@ -396,11 +397,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#e5e7eb',
+    color: Theme.colors.textPrimary,
   },
   subtitle: {
     marginTop: 4,
-    color: '#9ca3af',
+    color: Theme.colors.textSecondary,
     fontSize: 13,
     marginBottom: 16,
   },
@@ -408,20 +409,20 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 4,
     fontSize: 13,
-    color: '#9ca3af',
+    color: Theme.colors.textSecondary,
   },
   input: {
-    borderRadius: 12,
+    borderRadius: Theme.radii.sm,
     borderWidth: 1,
-    borderColor: '#1f2937',
+    borderColor: Theme.colors.border,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    color: '#e5e7eb',
+    color: Theme.colors.textPrimary,
     fontSize: 15,
-    backgroundColor: '#020617',
+    backgroundColor: Theme.colors.surfaceAlt,
   },
   inputError: {
-    borderColor: '#f97373',
+    borderColor: Theme.colors.danger,
   },
   notesInput: {
     minHeight: 90,
@@ -429,7 +430,7 @@ const styles = StyleSheet.create({
   errorText: {
     marginTop: 4,
     fontSize: 12,
-    color: '#f97373',
+    color: Theme.colors.danger,
   },
   row: {
     flexDirection: 'row',
@@ -443,37 +444,37 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#1f2937',
+    borderColor: Theme.colors.border,
     overflow: 'hidden',
+    backgroundColor: Theme.colors.surfaceAlt,
   },
   segment: {
     flex: 1,
     paddingVertical: 8,
     alignItems: 'center',
-    backgroundColor: '#020617',
   },
   segmentSelected: {
-    backgroundColor: '#38bdf8',
+    backgroundColor: Theme.colors.accent,
   },
   segmentText: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: Theme.colors.textSecondary,
   },
   segmentTextSelected: {
-    color: '#020617',
+    color: Theme.colors.background,
     fontWeight: '600',
   },
   dateInput: {
-    borderRadius: 12,
+    borderRadius: Theme.radii.sm,
     borderWidth: 1,
-    borderColor: '#1f2937',
+    borderColor: Theme.colors.border,
     paddingHorizontal: 12,
     paddingVertical: 12,
-    backgroundColor: '#020617',
+    backgroundColor: Theme.colors.surfaceAlt,
   },
   dateText: {
     fontSize: 15,
-    color: '#e5e7eb',
+    color: Theme.colors.textPrimary,
   },
   categoryContainer: {
     flexDirection: 'row',
@@ -485,37 +486,37 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#1f2937',
-    backgroundColor: '#020617',
+    borderColor: Theme.colors.border,
+    backgroundColor: Theme.colors.surfaceAlt,
   },
   categoryChipText: {
     fontSize: 12,
-    color: '#e5e7eb',
+    color: Theme.colors.textPrimary,
   },
   primaryButton: {
     marginTop: 24,
-    borderRadius: 14,
-    backgroundColor: '#38bdf8',
+    borderRadius: Theme.radii.md,
+    backgroundColor: Theme.colors.accent,
     paddingVertical: 12,
     alignItems: 'center',
+    ...Theme.shadow.glow,
   },
   primaryButtonText: {
-    color: '#020617',
+    color: Theme.colors.background,
     fontSize: 16,
     fontWeight: '700',
   },
   deleteButton: {
     marginTop: 12,
-    borderRadius: 14,
+    borderRadius: Theme.radii.md,
     borderWidth: 1,
     borderColor: '#b91c1c',
     paddingVertical: 11,
     alignItems: 'center',
   },
   deleteButtonText: {
-    color: '#f97373',
+    color: Theme.colors.danger,
     fontSize: 14,
     fontWeight: '600',
   },
 });
-

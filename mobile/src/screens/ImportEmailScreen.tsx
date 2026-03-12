@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,8 @@ import { useNavigation } from '@react-navigation/native';
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import { Subscription } from '../types';
 import { CATEGORY_LABELS } from '../constants/categories';
+import { ScreenBackground } from '../components/ScreenBackground';
+import { Theme } from '../theme';
 
 const formatCurrency = (value: number) => `${value.toLocaleString('ru-RU')} ₽/мес`;
 
@@ -52,98 +54,124 @@ export const ImportEmailScreen: React.FC = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Импорт из письма банка</Text>
-        <Text style={styles.subtitle}>
-          Вставьте текст SMS или письма от банка. Приложение создаст подписку в локальном списке.
-        </Text>
+    <ScreenBackground>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+          <Text style={styles.title}>Импорт из письма банка</Text>
+          <Text style={styles.subtitle}>
+            Вставьте текст SMS или письма от банка. Приложение создаст подписку в локальном списке.
+          </Text>
 
-        <Text style={styles.label}>Текст письма</Text>
-        <TextInput
-          style={styles.textArea}
-          multiline
-          numberOfLines={6}
-          textAlignVertical="top"
-          value={text}
-          onChangeText={setText}
-          placeholder="Списание 799 руб. Netflix 15.04.2026"
-          placeholderTextColor="#6b7280"
-        />
+          <Text style={styles.label}>Текст письма</Text>
+          <TextInput
+            style={styles.textArea}
+            multiline
+            numberOfLines={6}
+            textAlignVertical="top"
+            value={text}
+            onChangeText={setText}
+            placeholder="Списание 799 руб. Netflix 15.04.2026"
+            placeholderTextColor={Theme.colors.textMuted}
+          />
 
-        {error && <Text style={styles.errorText}>{error}</Text>}
+          {error && <Text style={styles.errorText}>{error}</Text>}
 
-        <TouchableOpacity
-          style={[styles.primaryButton, (isLoading || !text.trim()) && { opacity: 0.7 }]}
-          onPress={handleImport}
-          disabled={isLoading || !text.trim()}
-        >
-          <Text style={styles.primaryButtonText}>{isLoading ? 'Импортируем...' : 'Импортировать'}</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.primaryButton, (isLoading || !text.trim()) && { opacity: 0.7 }]}
+            onPress={handleImport}
+            disabled={isLoading || !text.trim()}
+          >
+            <Text style={styles.primaryButtonText}>
+              {isLoading ? 'Импортируем...' : 'Импортировать'}
+            </Text>
+          </TouchableOpacity>
 
-        {preview && (
-          <>
-            <Text style={[styles.label, { marginTop: 24 }]}>Предпросмотр подписки</Text>
-            <View style={styles.previewCard}>
-              <Text style={styles.previewTitle}>{preview.name}</Text>
-              <Text style={styles.previewSubtitle}>
-                {CATEGORY_LABELS[preview.category] ?? preview.category}
-              </Text>
+          {preview && (
+            <>
+              <Text style={[styles.label, { marginTop: 24 }]}>Предпросмотр подписки</Text>
+              <View style={styles.previewCard}>
+                <Text style={styles.previewTitle}>{preview.name}</Text>
+                <Text style={styles.previewSubtitle}>
+                  {CATEGORY_LABELS[preview.category] ?? preview.category}
+                </Text>
 
-              <View style={styles.previewRow}>
-                <Text style={styles.previewLabel}>Стоимость</Text>
-                <Text style={styles.previewValue}>{formatCurrency(preview.price)}</Text>
+                <View style={styles.previewRow}>
+                  <Text style={styles.previewLabel}>Стоимость</Text>
+                  <Text style={styles.previewValue}>{formatCurrency(preview.price)}</Text>
+                </View>
+
+                <View style={styles.previewRow}>
+                  <Text style={styles.previewLabel}>Следующее списание</Text>
+                  <Text style={styles.previewValue}>{formatDate(preview.nextChargeDate)}</Text>
+                </View>
               </View>
 
-              <View style={styles.previewRow}>
-                <Text style={styles.previewLabel}>Следующее списание</Text>
-                <Text style={styles.previewValue}>{formatDate(preview.nextChargeDate)}</Text>
-              </View>
-            </View>
-
-            <TouchableOpacity style={styles.secondaryButton} onPress={handleAdd}>
-              <Text style={styles.secondaryButtonText}>Добавить</Text>
-            </TouchableOpacity>
-          </>
-        )}
-      </ScrollView>
-    </KeyboardAvoidingView>
+              <TouchableOpacity style={styles.secondaryButton} onPress={handleAdd}>
+                <Text style={styles.secondaryButtonText}>Добавить</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </ScreenBackground>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#020617' },
+  container: { flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 },
-  title: { fontSize: 22, fontWeight: '700', color: '#e5e7eb' },
-  subtitle: { marginTop: 4, color: '#9ca3af', fontSize: 13, marginBottom: 16 },
-  label: { marginTop: 12, marginBottom: 4, fontSize: 13, color: '#9ca3af' },
+  title: { fontSize: 22, fontWeight: '700', color: Theme.colors.textPrimary },
+  subtitle: { marginTop: 4, color: Theme.colors.textSecondary, fontSize: 13, marginBottom: 16 },
+  label: { marginTop: 12, marginBottom: 4, fontSize: 13, color: Theme.colors.textSecondary },
   textArea: {
-    borderRadius: 12, borderWidth: 1, borderColor: '#1f2937', paddingHorizontal: 12,
-    paddingVertical: 10, minHeight: 140, color: '#e5e7eb', fontSize: 15, backgroundColor: '#020617',
+    borderRadius: Theme.radii.sm,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    minHeight: 140,
+    color: Theme.colors.textPrimary,
+    fontSize: 15,
+    backgroundColor: Theme.colors.surfaceAlt,
   },
-  errorText: { marginTop: 6, fontSize: 12, color: '#f97373' },
+  errorText: { marginTop: 6, fontSize: 12, color: Theme.colors.danger },
   primaryButton: {
-    marginTop: 20, borderRadius: 14, backgroundColor: '#38bdf8', paddingVertical: 12,
+    marginTop: 20,
+    borderRadius: Theme.radii.md,
+    backgroundColor: Theme.colors.accent,
+    paddingVertical: 12,
+    alignItems: 'center',
+    ...Theme.shadow.glow,
+  },
+  primaryButtonText: { color: Theme.colors.background, fontSize: 16, fontWeight: '700' },
+  previewCard: {
+    marginTop: 8,
+    borderRadius: Theme.radii.lg,
+    backgroundColor: Theme.colors.surface,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+    padding: 16,
+  },
+  previewTitle: { fontSize: 18, fontWeight: '700', color: Theme.colors.textPrimary },
+  previewSubtitle: { marginTop: 4, fontSize: 13, color: Theme.colors.textSecondary },
+  previewRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  previewLabel: { fontSize: 13, color: Theme.colors.textSecondary },
+  previewValue: { fontSize: 14, color: Theme.colors.textPrimary },
+  secondaryButton: {
+    marginTop: 16,
+    borderRadius: Theme.radii.md,
+    borderWidth: 1,
+    borderColor: Theme.colors.accentStrong,
+    paddingVertical: 11,
     alignItems: 'center',
   },
-  primaryButtonText: { color: '#020617', fontSize: 16, fontWeight: '700' },
-  previewCard: {
-    marginTop: 8, borderRadius: 18, backgroundColor: '#020617', borderWidth: 1,
-    borderColor: '#111827', padding: 16,
-  },
-  previewTitle: { fontSize: 18, fontWeight: '700', color: '#e5e7eb' },
-  previewSubtitle: { marginTop: 4, fontSize: 13, color: '#9ca3af' },
-  previewRow: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8,
-  },
-  previewLabel: { fontSize: 13, color: '#9ca3af' },
-  previewValue: { fontSize: 14, color: '#e5e7eb' },
-  secondaryButton: {
-    marginTop: 16, borderRadius: 14, borderWidth: 1, borderColor: '#22c55e',
-    paddingVertical: 11, alignItems: 'center',
-  },
-  secondaryButtonText: { color: '#22c55e', fontSize: 14, fontWeight: '600' },
+  secondaryButtonText: { color: Theme.colors.accentStrong, fontSize: 14, fontWeight: '600' },
 });

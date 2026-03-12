@@ -1,4 +1,4 @@
-﻿import React, { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
@@ -7,6 +7,8 @@ import { RootStackParamList } from '../navigation/AppNavigator';
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import { CATEGORY_LABELS } from '../constants/categories';
 import { BillingPeriod } from '../types';
+import { ScreenBackground } from '../components/ScreenBackground';
+import { Theme } from '../theme';
 
 type DetailRouteProp = RouteProp<RootStackParamList, 'SubscriptionDetail'>;
 
@@ -34,7 +36,7 @@ const formatDate = (isoDate: string | undefined) => {
 };
 
 const formatDateTimeShort = (isoDate?: string) => {
-  if (!isoDate) return 'еще не использовалась';
+  if (!isoDate) return 'ещё не использовалась';
   const d = new Date(isoDate);
   if (Number.isNaN(d.getTime())) return isoDate;
   return d.toLocaleString('ru-RU', {
@@ -48,7 +50,7 @@ const formatDateTimeShort = (isoDate?: string) => {
 export const SubscriptionDetailScreen: React.FC = () => {
   const route = useRoute<DetailRouteProp>();
   const navigation = useNavigation();
-  const { subscriptions, update } = useSubscriptionStore();
+  const { subscriptions, update, remove } = useSubscriptionStore();
 
   const subscription = useMemo(
     () => subscriptions.find((s) => s.id === route.params?.subscriptionId),
@@ -57,15 +59,17 @@ export const SubscriptionDetailScreen: React.FC = () => {
 
   if (!subscription) {
     return (
-      <View style={styles.missingContainer}>
-        <Text style={styles.missingTitle}>Подписка не найдена</Text>
-        <Text style={styles.missingText}>
-          Возможно, она была удалена или еще не загружена.
-        </Text>
-        <TouchableOpacity style={styles.primaryButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.primaryButtonText}>Вернуться назад</Text>
-        </TouchableOpacity>
-      </View>
+      <ScreenBackground>
+        <View style={styles.missingContainer}>
+          <Text style={styles.missingTitle}>Подписка не найдена</Text>
+          <Text style={styles.missingText}>
+            Возможно, она была удалена или ещё не загружена.
+          </Text>
+          <TouchableOpacity style={styles.primaryButton} onPress={() => navigation.goBack()}>
+            <Text style={styles.primaryButtonText}>Вернуться назад</Text>
+          </TouchableOpacity>
+        </View>
+      </ScreenBackground>
     );
   }
 
@@ -95,81 +99,107 @@ export const SubscriptionDetailScreen: React.FC = () => {
     await update(subscription.id, { usageCount: nextCount, lastUsedAt });
   };
 
+  const handleDelete = async () => {
+    Alert.alert('Удалить подписку', `Удалить "${subscription.name}"?`, [
+      { text: 'Отмена', style: 'cancel' },
+      {
+        text: 'Удалить',
+        style: 'destructive',
+        onPress: async () => {
+          await remove(subscription.id);
+          navigation.goBack();
+        },
+      },
+    ]);
+  };
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>{subscription.name}</Text>
-      <Text style={styles.category}>{categoryLabel}</Text>
+    <ScreenBackground>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <Text style={styles.title}>{subscription.name}</Text>
+        <Text style={styles.category}>{categoryLabel}</Text>
 
-      <View style={styles.card}>
-        <View style={styles.rowBetween}>
-          <Text style={styles.label}>Стоимость</Text>
-          <Text style={styles.valueStrong}>
-            {formatCurrency(subscription.price, subscription.billingPeriod)}
+        <View style={styles.card}>
+          <View style={styles.rowBetween}>
+            <Text style={styles.label}>Стоимость</Text>
+            <Text style={styles.valueStrong}>
+              {formatCurrency(subscription.price, subscription.billingPeriod)}
+            </Text>
+          </View>
+
+          <View style={styles.rowBetween}>
+            <Text style={styles.label}>Следующее списание</Text>
+            <Text style={styles.value}>{formatDate(subscription.nextChargeDate)}</Text>
+          </View>
+
+          <View style={styles.rowBetween}>
+            <Text style={styles.label}>Статус</Text>
+            <Text
+              style={[
+                styles.value,
+                subscription.isActive ? styles.badgeActive : styles.badgeInactive,
+              ]}
+            >
+              {subscription.isActive ? 'Активна' : 'Отключена'}
+            </Text>
+          </View>
+
+          <View style={styles.rowBetween}>
+            <Text style={styles.label}>Создана</Text>
+            <Text style={styles.value}>{formatDate(subscription.createdAt)}</Text>
+          </View>
+
+          <View style={styles.rowBetween}>
+            <Text style={styles.label}>Обновлена</Text>
+            <Text style={styles.value}>{formatDate(subscription.updatedAt)}</Text>
+          </View>
+        </View>
+
+        {subscription.url ? (
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Сервис</Text>
+            <TouchableOpacity onPress={() => Linking.openURL(subscription.url!)} style={styles.linkButton}>
+              <Text style={styles.linkText}>{subscription.url}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
+        {subscription.notes ? (
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Заметки</Text>
+            <Text style={styles.notesText}>{subscription.notes}</Text>
+          </View>
+        ) : null}
+
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Использование</Text>
+          <Text style={styles.value}>
+            Использована <Text style={styles.valueStrong}>{subscription.usageCount ?? 0} раз</Text>
+          </Text>
+          <Text style={[styles.value, { marginTop: 4 }]}>
+            Последний раз: {formatDateTimeShort(subscription.lastUsedAt)}
           </Text>
         </View>
 
-        <View style={styles.rowBetween}>
-          <Text style={styles.label}>Следующее списание</Text>
-          <Text style={styles.value}>{formatDate(subscription.nextChargeDate)}</Text>
-        </View>
+        <TouchableOpacity style={styles.primaryButton} onPress={handleMarkUsage}>
+          <Text style={styles.primaryButtonText}>Отметить использование</Text>
+        </TouchableOpacity>
 
-        <View style={styles.rowBetween}>
-          <Text style={styles.label}>Статус</Text>
-          <Text style={[styles.value, subscription.isActive ? styles.badgeActive : styles.badgeInactive]}>
-            {subscription.isActive ? 'Активна' : 'Отключена'}
-          </Text>
-        </View>
+        <TouchableOpacity style={styles.secondaryButton} onPress={handleCancel}>
+          <Text style={styles.secondaryButtonText}>Отменить подписку</Text>
+        </TouchableOpacity>
 
-        <View style={styles.rowBetween}>
-          <Text style={styles.label}>Создана</Text>
-          <Text style={styles.value}>{formatDate(subscription.createdAt)}</Text>
-        </View>
-
-        <View style={styles.rowBetween}>
-          <Text style={styles.label}>Обновлена</Text>
-          <Text style={styles.value}>{formatDate(subscription.updatedAt)}</Text>
-        </View>
-      </View>
-
-      {subscription.url ? (
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Сервис</Text>
-          <TouchableOpacity onPress={() => Linking.openURL(subscription.url!)} style={styles.linkButton}>
-            <Text style={styles.linkText}>{subscription.url}</Text>
-          </TouchableOpacity>
-        </View>
-      ) : null}
-
-      {subscription.notes ? (
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Заметки</Text>
-          <Text style={styles.notesText}>{subscription.notes}</Text>
-        </View>
-      ) : null}
-
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Использование</Text>
-        <Text style={styles.value}>
-          Использована <Text style={styles.valueStrong}>{subscription.usageCount ?? 0} раз</Text>
-        </Text>
-        <Text style={[styles.value, { marginTop: 4 }]}>Последний раз: {formatDateTimeShort(subscription.lastUsedAt)}</Text>
-      </View>
-
-      <TouchableOpacity style={styles.primaryButton} onPress={handleMarkUsage}>
-        <Text style={styles.primaryButtonText}>Отметить использование</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.secondaryButton} onPress={handleCancel}>
-        <Text style={styles.secondaryButtonText}>Отменить подписку</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+          <Text style={styles.deleteButtonText}>Удалить подписку</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </ScreenBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#020617',
   },
   content: {
     paddingHorizontal: 20,
@@ -179,19 +209,19 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#e5e7eb',
+    color: Theme.colors.textPrimary,
   },
   category: {
     marginTop: 4,
-    color: '#9ca3af',
+    color: Theme.colors.textSecondary,
     fontSize: 13,
   },
   card: {
     marginTop: 18,
-    borderRadius: 18,
-    backgroundColor: '#020617',
+    borderRadius: Theme.radii.lg,
+    backgroundColor: Theme.colors.surface,
     borderWidth: 1,
-    borderColor: '#111827',
+    borderColor: Theme.colors.border,
     padding: 16,
   },
   rowBetween: {
@@ -202,71 +232,84 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 13,
-    color: '#9ca3af',
+    color: Theme.colors.textSecondary,
   },
   value: {
     fontSize: 14,
-    color: '#e5e7eb',
+    color: Theme.colors.textPrimary,
   },
   valueStrong: {
     fontSize: 15,
-    color: '#38bdf8',
+    color: Theme.colors.accent,
     fontWeight: '700',
   },
   badgeActive: {
-    color: '#22c55e',
+    color: Theme.colors.accentStrong,
     fontWeight: '600',
   },
   badgeInactive: {
-    color: '#f97373',
+    color: Theme.colors.danger,
     fontWeight: '600',
   },
   sectionTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#e5e7eb',
+    color: Theme.colors.textPrimary,
     marginBottom: 8,
   },
   notesText: {
     fontSize: 14,
-    color: '#e5e7eb',
+    color: Theme.colors.textPrimary,
   },
   linkButton: {
     paddingVertical: 6,
   },
   linkText: {
     fontSize: 14,
-    color: '#38bdf8',
+    color: Theme.colors.accent,
     textDecorationLine: 'underline',
   },
   primaryButton: {
     marginTop: 24,
-    borderRadius: 14,
-    backgroundColor: '#38bdf8',
+    borderRadius: Theme.radii.md,
+    backgroundColor: Theme.colors.accent,
     paddingVertical: 12,
     alignItems: 'center',
+    ...Theme.shadow.glow,
   },
   primaryButtonText: {
-    color: '#020617',
+    color: Theme.colors.background,
     fontSize: 16,
     fontWeight: '700',
   },
   secondaryButton: {
     marginTop: 12,
-    borderRadius: 14,
+    borderRadius: Theme.radii.md,
     borderWidth: 1,
-    borderColor: '#f97373',
+    borderColor: Theme.colors.danger,
     paddingVertical: 11,
     alignItems: 'center',
   },
   secondaryButtonText: {
-    color: '#f97373',
+    color: Theme.colors.danger,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  deleteButton: {
+    marginTop: 12,
+    borderRadius: Theme.radii.md,
+    borderWidth: 1,
+    borderColor: '#b91c1c',
+    paddingVertical: 11,
+    alignItems: 'center',
+  },
+  deleteButtonText: {
+    color: Theme.colors.danger,
     fontSize: 14,
     fontWeight: '600',
   },
   missingContainer: {
     flex: 1,
-    backgroundColor: '#020617',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
@@ -274,12 +317,12 @@ const styles = StyleSheet.create({
   missingTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#e5e7eb',
+    color: Theme.colors.textPrimary,
     marginBottom: 8,
   },
   missingText: {
     fontSize: 14,
-    color: '#9ca3af',
+    color: Theme.colors.textSecondary,
     textAlign: 'center',
     marginBottom: 16,
   },

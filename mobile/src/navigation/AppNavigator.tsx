@@ -18,7 +18,7 @@ export type RootStackParamList = {
   Register: undefined;
   MainTabs: undefined;
   SubscriptionDetail: { subscriptionId: string };
-  SubscriptionForm: { subscriptionId?: string } | undefined;
+  SubscriptionForm: { subscriptionId?: string; candidateId?: number; candidateName?: string } | undefined;
   ImportEmail: undefined;
   Forecast: undefined;
   Candidates: undefined;

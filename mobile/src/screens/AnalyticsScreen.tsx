@@ -5,6 +5,8 @@ import { PieChart, BarChart } from 'react-native-gifted-charts';
 
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import { CATEGORIES } from '../constants/categories';
+import { ScreenBackground } from '../components/ScreenBackground';
+import { Theme } from '../theme';
 
 const monthKeyFromDate = (date: Date) => {
   const y = date.getFullYear();
@@ -52,7 +54,7 @@ export const AnalyticsScreen: React.FC = () => {
       .filter(([, value]) => value > 0)
       .map(([category, value]) => ({
         value,
-        color: colorByCategory[category] ?? '#6b7280',
+        color: colorByCategory[category] ?? Theme.colors.textMuted,
         text: '',
       }));
 
@@ -67,7 +69,7 @@ export const AnalyticsScreen: React.FC = () => {
       return {
         value: m.total,
         label,
-        frontColor: '#38bdf8',
+        frontColor: Theme.colors.accent,
       };
     });
 
@@ -75,112 +77,123 @@ export const AnalyticsScreen: React.FC = () => {
   }, [analytics]);
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
-      <Text style={styles.title}>Аналитика подписок</Text>
-      <Text style={styles.subtitle}>
-        Следите за регулярными расходами по категориям и месяцам.
-      </Text>
+    <ScreenBackground>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.title}>Аналитика подписок</Text>
+        <Text style={styles.subtitle}>
+          Следите за регулярными расходами по категориям и месяцам.
+        </Text>
 
-      <View style={styles.summaryRow}>
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Текущий месяц</Text>
-          <Text style={styles.summaryValue}>
-            {currentMonthTotal.toLocaleString('ru-RU')} ₽
-          </Text>
+        <View style={styles.summaryRow}>
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryLabel}>Текущий месяц</Text>
+            <Text style={styles.summaryValue}>
+              {currentMonthTotal.toLocaleString('ru-RU')} ₽
+            </Text>
+          </View>
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryLabel}>Текущий год</Text>
+            <Text style={styles.summaryValue}>
+              {currentYearTotal.toLocaleString('ru-RU')} ₽
+            </Text>
+          </View>
         </View>
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Текущий год</Text>
-          <Text style={styles.summaryValue}>
-            {currentYearTotal.toLocaleString('ru-RU')} ₽
-          </Text>
-        </View>
-      </View>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Расходы по категориям</Text>
-        {pieData.length ? (
-          <>
-            <View style={styles.chartRow}>
-              <PieChart
-                data={pieData}
-                donut
-                radius={80}
-                innerRadius={50}
-                innerCircleColor="#020617"
-                centerLabelComponent={() => (
-                  <View style={{ alignItems: 'center' }}>
-                    <Text style={{ color: '#9ca3af', fontSize: 12 }}>Всего</Text>
-                    <Text style={{ color: '#e5e7eb', fontSize: 16, fontWeight: '700' }}>
-                      {currentMonthTotal.toLocaleString('ru-RU')} ₽
-                    </Text>
-                  </View>
-                )}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Расходы по категориям</Text>
+          {pieData.length ? (
+            <>
+              <View style={styles.chartRow}>
+                <PieChart
+                  data={pieData}
+                  donut
+                  radius={84}
+                  innerRadius={52}
+                  innerCircleColor={Theme.colors.surfaceAlt}
+                  centerLabelComponent={() => (
+                    <View style={{ alignItems: 'center' }}>
+                      <Text style={{ color: Theme.colors.textMuted, fontSize: 12 }}>
+                        Всего
+                      </Text>
+                      <Text
+                        style={{
+                          color: Theme.colors.textPrimary,
+                          fontSize: 16,
+                          fontWeight: '700',
+                        }}
+                      >
+                        {currentMonthTotal.toLocaleString('ru-RU')} ₽
+                      </Text>
+                    </View>
+                  )}
+                />
+              </View>
+              <View style={styles.legendContainer}>
+                {CATEGORIES.map((cat) => {
+                  const value = analytics?.totalByCategory[cat.id] ?? 0;
+                  if (!value) return null;
+                  return (
+                    <View key={cat.id} style={styles.legendItem}>
+                      <View style={[styles.legendColor, { backgroundColor: cat.color }]} />
+                      <Text style={styles.legendLabel}>{cat.label}</Text>
+                      <Text style={styles.legendValue}>
+                        {value.toLocaleString('ru-RU')} ₽
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+            </>
+          ) : (
+            <Text style={styles.emptyText}>
+              Недостаточно данных для построения графика.
+            </Text>
+          )}
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Расходы по месяцам</Text>
+          {barData.length ? (
+            <View style={{ marginTop: 16 }}>
+              <BarChart
+                data={barData}
+                barWidth={24}
+                spacing={18}
+                xAxisThickness={0}
+                yAxisThickness={0}
+                yAxisTextStyle={{ color: Theme.colors.textMuted, fontSize: 10 }}
+                xAxisLabelTextStyle={{ color: Theme.colors.textMuted, fontSize: 10 }}
+                noOfSections={4}
+                maxValue={Math.max(...barData.map((b) => b.value), 1000)}
+                hideRules
+                frontColor={Theme.colors.accent}
               />
             </View>
-            <View style={styles.legendContainer}>
-              {CATEGORIES.map((cat) => {
-                const value = analytics?.totalByCategory[cat.id] ?? 0;
-                if (!value) return null;
-                return (
-                  <View key={cat.id} style={styles.legendItem}>
-                    <View
-                      style={[styles.legendColor, { backgroundColor: cat.color }]}
-                    />
-                    <Text style={styles.legendLabel}>{cat.label}</Text>
-                    <Text style={styles.legendValue}>
-                      {value.toLocaleString('ru-RU')} ₽
-                    </Text>
-                  </View>
-                );
-              })}
-            </View>
-          </>
-        ) : (
-          <Text style={styles.emptyText}>Недостаточно данных для построения графика.</Text>
-        )}
-      </View>
+          ) : (
+            <Text style={styles.emptyText}>Пока нет данных по месяцам.</Text>
+          )}
+        </View>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Расходы по месяцам</Text>
-        {barData.length ? (
-          <View style={{ marginTop: 16 }}>
-            <BarChart
-              data={barData}
-              barWidth={24}
-              spacing={18}
-              xAxisThickness={0}
-              yAxisThickness={0}
-              yAxisTextStyle={{ color: '#6b7280', fontSize: 10 }}
-              xAxisLabelTextStyle={{ color: '#6b7280', fontSize: 10 }}
-              noOfSections={4}
-              maxValue={Math.max(...barData.map((b) => b.value), 1000)}
-              hideRules
-              frontColor="#38bdf8"
-            />
-          </View>
-        ) : (
-          <Text style={styles.emptyText}>Пока нет данных по месяцам.</Text>
-        )}
-      </View>
-
-      <TouchableOpacity
-        style={styles.forecastButton}
-        onPress={() => navigation.getParent()?.navigate('Forecast' as never)}
-      >
-        <Text style={styles.forecastButtonText}>Открыть прогноз на 12 месяцев</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <TouchableOpacity
+          style={styles.forecastButton}
+          onPress={() => navigation.getParent()?.navigate('Forecast' as never)}
+        >
+          <Text style={styles.forecastButtonText}>
+            Открыть прогноз на 12 месяцев
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </ScreenBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#020617',
   },
   content: {
     paddingHorizontal: 20,
@@ -190,11 +203,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#e5e7eb',
+    color: Theme.colors.textPrimary,
   },
   subtitle: {
     marginTop: 4,
-    color: '#9ca3af',
+    color: Theme.colors.textSecondary,
     fontSize: 13,
     marginBottom: 16,
   },
@@ -204,34 +217,34 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     flex: 1,
-    borderRadius: 18,
-    backgroundColor: '#020617',
+    borderRadius: Theme.radii.lg,
+    backgroundColor: Theme.colors.surface,
     borderWidth: 1,
-    borderColor: '#111827',
+    borderColor: Theme.colors.border,
     padding: 14,
   },
   summaryLabel: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: Theme.colors.textSecondary,
   },
   summaryValue: {
     marginTop: 6,
     fontSize: 18,
     fontWeight: '700',
-    color: '#38bdf8',
+    color: Theme.colors.accent,
   },
   card: {
     marginTop: 18,
-    borderRadius: 18,
-    backgroundColor: '#020617',
+    borderRadius: Theme.radii.lg,
+    backgroundColor: Theme.colors.surface,
     borderWidth: 1,
-    borderColor: '#111827',
+    borderColor: Theme.colors.border,
     padding: 16,
   },
   sectionTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#e5e7eb',
+    color: Theme.colors.textPrimary,
   },
   chartRow: {
     marginTop: 8,
@@ -255,29 +268,28 @@ const styles = StyleSheet.create({
   legendLabel: {
     flex: 1,
     fontSize: 13,
-    color: '#e5e7eb',
+    color: Theme.colors.textPrimary,
   },
   legendValue: {
     fontSize: 13,
-    color: '#9ca3af',
+    color: Theme.colors.textSecondary,
   },
   emptyText: {
     marginTop: 12,
     fontSize: 13,
-    color: '#6b7280',
+    color: Theme.colors.textMuted,
   },
   forecastButton: {
     marginTop: 18,
-    borderRadius: 14,
+    borderRadius: Theme.radii.md,
     borderWidth: 1,
-    borderColor: '#38bdf8',
+    borderColor: Theme.colors.accent,
     paddingVertical: 11,
     alignItems: 'center',
   },
   forecastButtonText: {
-    color: '#38bdf8',
+    color: Theme.colors.accent,
     fontSize: 14,
     fontWeight: '600',
   },
 });
-

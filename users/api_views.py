@@ -6,7 +6,7 @@ import json
 
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import EmailAccount, EmailSubscriptionCandidate
+from .models import EmailAccount, EmailSubscriptionCandidate, Device
 from .email_providers import detect_provider
 from .email_validator import test_imap_connection
 from .crypto_utils import encrypt_password
@@ -182,6 +182,11 @@ def register_device_api(request):
     auth_error = _require_auth(request)
     if auth_error:
         return auth_error
+    data = _json_body(request)
+    token = (data.get('token') or '').strip()
+    if not token:
+        return JsonResponse({"detail": "Token required"}, status=400)
+    Device.objects.update_or_create(token=token, defaults={"user": request.user})
     return JsonResponse({"message": "device registered"})
 
 
@@ -190,5 +195,10 @@ def test_push_api(request):
     auth_error = _require_auth(request)
     if auth_error:
         return auth_error
+    try:
+        from .push_service import send_user_notifications
+        send_user_notifications(request.user, "Тестовое уведомление", "Push работает")
+    except Exception:
+        pass
     return JsonResponse({"message": "push queued"})
 

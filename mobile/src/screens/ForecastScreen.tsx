@@ -1,10 +1,12 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import { CATEGORIES } from '../constants/categories';
 import { SubscriptionCategory } from '../types';
+import { ScreenBackground } from '../components/ScreenBackground';
+import { Theme } from '../theme';
 
 export const ForecastScreen: React.FC = () => {
   const { forecast, loadForecast, getCategoryRecommendations } = useSubscriptionStore();
@@ -61,109 +63,120 @@ export const ForecastScreen: React.FC = () => {
         label: mm,
         dataPointText: '',
         hideDataPoint: false,
-        frontColor: '#38bdf8',
+        frontColor: Theme.colors.accent,
       };
     });
   }, [forecast]);
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
-      <Text style={styles.title}>Прогноз расходов</Text>
-      <Text style={styles.subtitle}>
-        Оценка регулярных платежей на ближайшие 12 месяцев и предложения по экономии.
-      </Text>
-
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Линейный прогноз на 12 месяцев</Text>
-        {forecast && lineData.length ? (
-          <View style={styles.lineChartWrapper}>
-            <LineChart
-              data={lineData}
-              color="#38bdf8"
-              thickness={2}
-              hideDataPoints={false}
-              dataPointsColor="#38bdf8"
-              dataPointsRadius={3}
-              curved
-              showVerticalLines
-              verticalLinesColor="rgba(148, 163, 184, 0.25)"
-              xAxisColor="transparent"
-              yAxisColor="transparent"
-              yAxisTextStyle={{ color: '#6b7280', fontSize: 10 }}
-              xAxisLabelTextStyle={{ color: '#6b7280', fontSize: 10 }}
-              noOfSections={4}
-              maxValue={Math.max(...lineData.map((d) => d.value), 1000)}
-              initialSpacing={20}
-            />
-          </View>
-        ) : (
-          <Text style={styles.emptyText}>Недостаточно данных для построения прогноза.</Text>
-        )}
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Рекомендации по экономии</Text>
-        <Text style={styles.sectionSubtitle}>
-          Более выгодные альтернативы для популярных категорий подписок.
+    <ScreenBackground>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.title}>Прогноз расходов</Text>
+        <Text style={styles.subtitle}>
+          Оценка регулярных платежей на ближайшие 12 месяцев и предложения по экономии.
         </Text>
 
-        {loadingRecs && (
-          <View style={{ paddingVertical: 12, alignItems: 'center' }}>
-            <ActivityIndicator size="small" color="#38bdf8" />
-          </View>
-        )}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Линейный прогноз на 12 месяцев</Text>
+          {forecast && lineData.length ? (
+            <View style={styles.lineChartWrapper}>
+              <LineChart
+                data={lineData}
+                color={Theme.colors.accent}
+                thickness={2}
+                hideDataPoints={false}
+                dataPointsColor={Theme.colors.accent}
+                dataPointsRadius={3}
+                curved
+                showVerticalLines
+                verticalLinesColor="rgba(148, 163, 184, 0.25)"
+                xAxisColor="transparent"
+                yAxisColor="transparent"
+                yAxisTextStyle={{ color: Theme.colors.textMuted, fontSize: 10 }}
+                xAxisLabelTextStyle={{ color: Theme.colors.textMuted, fontSize: 10 }}
+                noOfSections={4}
+                maxValue={Math.max(...lineData.map((d) => d.value), 1000)}
+                initialSpacing={20}
+              />
+            </View>
+          ) : (
+            <Text style={styles.emptyText}>Недостаточно данных для построения прогноза.</Text>
+          )}
+        </View>
 
-        {!loadingRecs &&
-          CATEGORIES.map((cat) => {
-            const recs = recommendations[cat.id as SubscriptionCategory] ?? [];
-            if (!recs.length) return null;
-            return (
-              <View key={cat.id} style={styles.recommendationBlock}>
-                <View style={styles.recommendationHeader}>
-                  <View style={[styles.recommendationDot, { backgroundColor: cat.color }]} />
-                  <Text style={styles.recommendationTitle}>{cat.label}</Text>
-                </View>
-                {recs.slice(0, 3).map((r) => (
-                  <Text key={r.name} style={styles.recommendationItem}>
-                    • {r.name}{' '}
-                    <Text style={styles.recommendationPrice}>
-                      от {r.price.toLocaleString('ru-RU')} ₽/мес
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Рекомендации по экономии</Text>
+          <Text style={styles.sectionSubtitle}>
+            Более выгодные альтернативы для популярных категорий подписок.
+          </Text>
+
+          {loadingRecs && (
+            <View style={{ paddingVertical: 12, alignItems: 'center' }}>
+              <ActivityIndicator size="small" color={Theme.colors.accent} />
+            </View>
+          )}
+
+          {!loadingRecs &&
+            CATEGORIES.map((cat) => {
+              const recs = recommendations[cat.id as SubscriptionCategory] ?? [];
+              if (!recs.length) return null;
+              return (
+                <View key={cat.id} style={styles.recommendationBlock}>
+                  <View style={styles.recommendationHeader}>
+                    <View
+                      style={[
+                        styles.recommendationDot,
+                        { backgroundColor: cat.color },
+                      ]}
+                    />
+                    <Text style={styles.recommendationTitle}>{cat.label}</Text>
+                  </View>
+                  {recs.slice(0, 3).map((r) => (
+                    <Text key={r.name} style={styles.recommendationItem}>
+                      • {r.name}{' '}
+                      <Text style={styles.recommendationPrice}>
+                        от {r.price.toLocaleString('ru-RU')} ₽/мес
+                      </Text>
+                      {r.vendor ? (
+                        <Text style={styles.recommendationVendor}> ({r.vendor})</Text>
+                      ) : null}
                     </Text>
-                    {r.vendor ? (
-                      <Text style={styles.recommendationVendor}> ({r.vendor})</Text>
-                    ) : null}
-                  </Text>
-                ))}
-              </View>
-            );
-          })}
-      </View>
-    </ScrollView>
+                  ))}
+                </View>
+              );
+            })}
+        </View>
+      </ScrollView>
+    </ScreenBackground>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#020617' },
+  container: { flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 },
-  title: { fontSize: 22, fontWeight: '700', color: '#e5e7eb' },
-  subtitle: { marginTop: 4, color: '#9ca3af', fontSize: 13, marginBottom: 16 },
+  title: { fontSize: 22, fontWeight: '700', color: Theme.colors.textPrimary },
+  subtitle: { marginTop: 4, color: Theme.colors.textSecondary, fontSize: 13, marginBottom: 16 },
   card: {
-    marginTop: 18, borderRadius: 18, backgroundColor: '#020617', borderWidth: 1,
-    borderColor: '#111827', padding: 16,
+    marginTop: 18,
+    borderRadius: Theme.radii.lg,
+    backgroundColor: Theme.colors.surface,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+    padding: 16,
   },
-  sectionTitle: { fontSize: 15, fontWeight: '600', color: '#e5e7eb' },
-  sectionSubtitle: { marginTop: 6, fontSize: 13, color: '#9ca3af' },
+  sectionTitle: { fontSize: 15, fontWeight: '600', color: Theme.colors.textPrimary },
+  sectionSubtitle: { marginTop: 6, fontSize: 13, color: Theme.colors.textSecondary },
   lineChartWrapper: { marginTop: 16, height: 220 },
-  emptyText: { marginTop: 12, fontSize: 13, color: '#6b7280' },
+  emptyText: { marginTop: 12, fontSize: 13, color: Theme.colors.textMuted },
   recommendationBlock: { marginTop: 16 },
   recommendationHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
   recommendationDot: { width: 10, height: 10, borderRadius: 999, marginRight: 8 },
-  recommendationTitle: { fontSize: 14, fontWeight: '600', color: '#e5e7eb' },
-  recommendationItem: { marginLeft: 4, marginTop: 2, fontSize: 13, color: '#e5e7eb' },
-  recommendationPrice: { color: '#38bdf8' },
-  recommendationVendor: { color: '#9ca3af' },
+  recommendationTitle: { fontSize: 14, fontWeight: '600', color: Theme.colors.textPrimary },
+  recommendationItem: { marginLeft: 4, marginTop: 2, fontSize: 13, color: Theme.colors.textPrimary },
+  recommendationPrice: { color: Theme.colors.accent },
+  recommendationVendor: { color: Theme.colors.textSecondary },
 });

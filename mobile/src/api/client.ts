@@ -322,6 +322,29 @@ export async function ignoreCandidate(id: number) {
   });
 }
 
+export async function createFromCandidate(
+  id: number,
+  payload: {
+    name: string;
+    price: number;
+    currency: string;
+    billing_period: string;
+    start_date: string;
+    next_payment_date: string;
+    category?: number | null;
+    service_url?: string;
+    notes?: string;
+  },
+) {
+  return authedRequest<{ message?: string; subscription?: ApiSubscription }>(
+    `/main/candidates/${id}/create/`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
 export async function saveTokens(access: string, refresh?: string) {
   await SecureStore.setItemAsync(AUTH_TOKEN_KEY, access);
   if (refresh) {

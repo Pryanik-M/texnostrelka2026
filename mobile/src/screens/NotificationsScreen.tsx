@@ -4,6 +4,9 @@ import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import { Subscription } from '../types';
 import { CATEGORY_LABELS } from '../constants/categories';
+import { ScreenBackground } from '../components/ScreenBackground';
+import { Theme } from '../theme';
+import { CatSticker } from '../components/CatSticker';
 
 const daysUntil = (isoDate: string) => {
   const target = new Date(isoDate);
@@ -23,8 +26,7 @@ const formatDate = (isoDate: string) => {
   });
 };
 
-const formatCurrency = (value: number) =>
-  `${value.toLocaleString('ru-RU')} ₽`;
+const formatCurrency = (value: number) => `${value.toLocaleString('ru-RU')} ₽`;
 
 export const NotificationsScreen: React.FC = () => {
   const { subscriptions } = useSubscriptionStore();
@@ -57,82 +59,88 @@ export const NotificationsScreen: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.headerTitle}>Предстоящие списания</Text>
-      <Text style={styles.headerSubtitle}>
-        Локальные напоминания по подпискам на ближайшие дни.
-      </Text>
+    <ScreenBackground>
+      <View style={styles.container}>
+        <Text style={styles.headerTitle}>Предстоящие списания</Text>
+        <Text style={styles.headerSubtitle}>
+          Локальные напоминания по подпискам на ближайшие дни.
+        </Text>
 
-      <FlatList
-        data={upcoming}
-        keyExtractor={(item) => item.sub.id}
-        renderItem={renderItem}
-        contentContainerStyle={[
-          styles.listContent,
-          !upcoming.length && { flex: 1, justifyContent: 'center' },
-        ]}
-        ListEmptyComponent={
-          <View style={{ alignItems: 'center', paddingHorizontal: 32 }}>
-            <Text style={styles.emptyTitle}>Нет предстоящих списаний</Text>
-            <Text style={styles.emptyText}>
-              Мы покажем здесь напоминания, когда до списания по подписке останется 1–3 дня.
-            </Text>
-          </View>
-        }
-      />
-    </View>
+        <FlatList
+          data={upcoming}
+          keyExtractor={(item) => item.sub.id}
+          renderItem={renderItem}
+          contentContainerStyle={[
+            styles.listContent,
+            !upcoming.length && { flex: 1, justifyContent: 'center' },
+          ]}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <CatSticker size={88} color={Theme.colors.textPrimary} accent={Theme.colors.accent} />
+              <Text style={styles.emptyTitle}>Нет предстоящих списаний</Text>
+              <Text style={styles.emptyText}>
+                Мы покажем здесь напоминания, когда до списания останется 1–3 дня.
+              </Text>
+            </View>
+          }
+        />
+      </View>
+    </ScreenBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#020617',
     paddingHorizontal: 20,
     paddingTop: 20,
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#e5e7eb',
+    color: Theme.colors.textPrimary,
   },
   headerSubtitle: {
     marginTop: 4,
     fontSize: 13,
-    color: '#9ca3af',
+    color: Theme.colors.textSecondary,
     marginBottom: 16,
   },
   listContent: {
     paddingBottom: 24,
   },
   card: {
-    borderRadius: 16,
-    backgroundColor: '#020617',
+    borderRadius: Theme.radii.md,
+    backgroundColor: Theme.colors.surface,
     borderWidth: 1,
-    borderColor: '#111827',
+    borderColor: Theme.colors.border,
     padding: 14,
     marginBottom: 10,
   },
   title: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#e5e7eb',
+    color: Theme.colors.textPrimary,
   },
   meta: {
     marginTop: 4,
     fontSize: 12,
-    color: '#9ca3af',
+    color: Theme.colors.textSecondary,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    paddingHorizontal: 32,
   },
   emptyTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#e5e7eb',
+    color: Theme.colors.textPrimary,
+    marginTop: 12,
     marginBottom: 6,
   },
   emptyText: {
     fontSize: 13,
-    color: '#9ca3af',
+    color: Theme.colors.textSecondary,
     textAlign: 'center',
   },
 });
-
