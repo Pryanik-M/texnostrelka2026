@@ -14,7 +14,11 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.subscriptionmonitor",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "googleServicesFile": "./android/app/google-services.json",
@@ -32,6 +36,14 @@
       "expo-secure-store",
       "expo-build-properties",
       "@react-native-community/datetimepicker"
-    ]
+    ],
+    "extra": {
+      "EXPO_PUBLIC_API_BASE_URL": "http://192.168.0.54:8000/api/users",
+      "EXPO_PUBLIC_API_BASE_URL_IP": "http://192.168.0.54:8000/api/users",
+      "EXPO_PUBLIC_API_BASE_URL_LOCAL": "http://127.0.0.1:8000/api/users",
+      "eas": {
+        "projectId": "7a13f90c-0fef-4422-89b6-552f9ba3fca9"
+      }
+    }
   }
 }
