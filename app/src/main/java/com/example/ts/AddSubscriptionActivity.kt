@@ -2,9 +2,12 @@ package com.example.ts
 
 import android.app.DatePickerDialog
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -12,6 +15,12 @@ import java.util.*
 
 class AddSubscriptionActivity : AppCompatActivity() {
 
+    private lateinit var tilName: TextInputLayout
+    private lateinit var tilPrice: TextInputLayout
+    private lateinit var tilCurrency: TextInputLayout
+    private lateinit var tilStartDate: TextInputLayout
+    private lateinit var tilNextPayment: TextInputLayout
+    
     private lateinit var etName: TextInputEditText
     private lateinit var etPrice: TextInputEditText
     private lateinit var etCurrency: TextInputEditText
@@ -33,14 +42,14 @@ class AddSubscriptionActivity : AppCompatActivity() {
         setContentView(R.layout.activity_add_subscription)
 
         initViews()
+        setupTextWatchers()
 
         subId = intent.getIntExtra("SUB_ID", -1)
         val authToken = getSharedPreferences("app_prefs", MODE_PRIVATE).getString("auth_token", "") ?: ""
 
-        // Fetch categories first, then load subscription data if editing
         loadCategories(authToken) {
             if (subId != -1) {
-                findViewById<TextView>(R.id.tv_title).text = "Edit Subscription"
+                findViewById<TextView>(R.id.tv_title).text = "Редактировать подписку"
                 loadSubscriptionData(authToken, subId)
             } else {
                 val candidateService = intent.getStringExtra("CANDIDATE_SERVICE")
@@ -60,11 +69,19 @@ class AddSubscriptionActivity : AppCompatActivity() {
         etNextPayment.setOnClickListener { showDatePicker(etNextPayment) }
 
         btnSave.setOnClickListener {
-            saveSubscription(authToken)
+            if (validateInputs()) {
+                saveSubscription(authToken)
+            }
         }
     }
 
     private fun initViews() {
+        tilName = findViewById(R.id.til_name)
+        tilPrice = findViewById(R.id.til_price)
+        tilCurrency = findViewById(R.id.til_currency)
+        tilStartDate = findViewById(R.id.til_start_date)
+        tilNextPayment = findViewById(R.id.til_next_payment)
+
         etName = findViewById(R.id.et_name)
         etPrice = findViewById(R.id.et_price)
         etCurrency = findViewById(R.id.et_currency)
@@ -79,13 +96,59 @@ class AddSubscriptionActivity : AppCompatActivity() {
         btnSave = findViewById(R.id.btn_save)
     }
 
+    private fun setupTextWatchers() {
+        val watcher = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                tilName.error = null
+                tilPrice.error = null
+                tilCurrency.error = null
+                tilStartDate.error = null
+                tilNextPayment.error = null
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        }
+        etName.addTextChangedListener(watcher)
+        etPrice.addTextChangedListener(watcher)
+        etCurrency.addTextChangedListener(watcher)
+    }
+
+    private fun validateInputs(): Boolean {
+        var isValid = true
+        if (etName.text.toString().trim().isEmpty()) {
+            tilName.error = "Введите название"
+            isValid = false
+        }
+        val priceStr = etPrice.text.toString().trim()
+        if (priceStr.isEmpty()) {
+            tilPrice.error = "Введите цену"
+            isValid = false
+        } else if (priceStr.toDoubleOrNull() == null) {
+            tilPrice.error = "Некорректное число"
+            isValid = false
+        }
+        if (etCurrency.text.toString().trim().isEmpty()) {
+            tilCurrency.error = "Введите валюту"
+            isValid = false
+        }
+        if (etStartDate.text.toString().isEmpty()) {
+            tilStartDate.error = "Выберите дату"
+            isValid = false
+        }
+        if (etNextPayment.text.toString().isEmpty()) {
+            tilNextPayment.error = "Выберите дату"
+            isValid = false
+        }
+        return isValid
+    }
+
     private fun loadCategories(token: String, onLoaded: () -> Unit) {
         NetworkClient.apiService.getCategories("Bearer $token").enqueue(object : Callback<List<Category>> {
             override fun onResponse(call: Call<List<Category>>, response: Response<List<Category>>) {
                 if (response.isSuccessful) {
                     categories = response.body() ?: emptyList()
                     val names = categories.map { it.name }.toMutableList()
-                    names.add(0, "No Category")
+                    names.add(0, "Без категории")
                     val adapter = ArrayAdapter(this@AddSubscriptionActivity, android.R.layout.simple_spinner_item, names)
                     adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
                     spinnerCategory.adapter = adapter
@@ -152,13 +215,8 @@ class AddSubscriptionActivity : AppCompatActivity() {
     }
 
     private fun saveSubscription(token: String) {
-        val name = etName.text.toString()
-        val priceStr = etPrice.text.toString()
-        if (name.isEmpty() || priceStr.isEmpty()) {
-            Toast.makeText(this, "Name and Price are required", Toast.LENGTH_SHORT).show()
-            return
-        }
-        val price = priceStr.toDoubleOrNull() ?: 0.0
+        val name = etName.text.toString().trim()
+        val price = etPrice.text.toString().trim().toDouble()
 
         val categoryId = if (spinnerCategory.selectedItemPosition > 0) {
             categories[spinnerCategory.selectedItemPosition - 1].id
@@ -181,14 +239,14 @@ class AddSubscriptionActivity : AppCompatActivity() {
             NetworkClient.apiService.createSubscription("Bearer $token", request).enqueue(object : Callback<CreateSubscriptionResponse> {
                 override fun onResponse(call: Call<CreateSubscriptionResponse>, response: Response<CreateSubscriptionResponse>) {
                     if (response.isSuccessful) {
-                        Toast.makeText(this@AddSubscriptionActivity, "Created", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@AddSubscriptionActivity, "Сохранено", Toast.LENGTH_SHORT).show()
                         finish()
                     } else {
-                        Toast.makeText(this@AddSubscriptionActivity, "Error: ${response.code()}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@AddSubscriptionActivity, "Ошибка сервера", Toast.LENGTH_SHORT).show()
                     }
                 }
                 override fun onFailure(call: Call<CreateSubscriptionResponse>, t: Throwable) {
-                    Toast.makeText(this@AddSubscriptionActivity, "Failed: ${t.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@AddSubscriptionActivity, "Ошибка сети", Toast.LENGTH_SHORT).show()
                 }
             })
         } else {
@@ -208,14 +266,14 @@ class AddSubscriptionActivity : AppCompatActivity() {
             NetworkClient.apiService.updateSubscription("Bearer $token", subId, request).enqueue(object : Callback<Subscription> {
                 override fun onResponse(call: Call<Subscription>, response: Response<Subscription>) {
                     if (response.isSuccessful) {
-                        Toast.makeText(this@AddSubscriptionActivity, "Updated", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@AddSubscriptionActivity, "Обновлено", Toast.LENGTH_SHORT).show()
                         finish()
                     } else {
-                        Toast.makeText(this@AddSubscriptionActivity, "Error: ${response.code()}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@AddSubscriptionActivity, "Ошибка сервера", Toast.LENGTH_SHORT).show()
                     }
                 }
                 override fun onFailure(call: Call<Subscription>, t: Throwable) {
-                    Toast.makeText(this@AddSubscriptionActivity, "Failed: ${t.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@AddSubscriptionActivity, "Ошибка сети", Toast.LENGTH_SHORT).show()
                 }
             })
         }

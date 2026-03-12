@@ -3,8 +3,11 @@ package com.example.ts
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
 import android.text.InputType
+import android.text.TextWatcher
 import android.util.Log
+import android.util.Patterns
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -12,12 +15,18 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.messaging.FirebaseMessaging
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var emailLayout: TextInputLayout
+    private lateinit var passwordLayout: TextInputLayout
+    private lateinit var emailEditText: TextInputEditText
+    private lateinit var passwordEditText: TextInputEditText
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,22 +40,22 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
-        val emailEditText = findViewById<TextInputEditText>(R.id.emailEditText)
-        val passwordEditText = findViewById<TextInputEditText>(R.id.passwordEditText)
+        emailLayout = findViewById(R.id.emailLayout)
+        passwordLayout = findViewById(R.id.passwordLayout)
+        emailEditText = findViewById(R.id.emailEditText)
+        passwordEditText = findViewById(R.id.passwordEditText)
         val loginButton = findViewById<Button>(R.id.loginButton)
         val registerButton = findViewById<Button>(R.id.registerButton)
         val forgotPasswordButton = findViewById<Button>(R.id.forgotPasswordButton)
 
+        setupTextWatchers()
+
         loginButton.setOnClickListener {
-            val email = emailEditText.text.toString().trim()
-            val password = passwordEditText.text.toString().trim()
-
-            if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Заполните все поля", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+            if (validateInputs()) {
+                val email = emailEditText.text.toString().trim()
+                val password = passwordEditText.text.toString().trim()
+                performLogin(email, password)
             }
-
-            performLogin(email, password)
         }
 
         registerButton.setOnClickListener {
@@ -59,23 +68,84 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupTextWatchers() {
+        emailEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                emailLayout.error = null
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
+
+        passwordEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                passwordLayout.error = null
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
+    }
+
+    private fun validateInputs(): Boolean {
+        var isValid = true
+        val email = emailEditText.text.toString().trim()
+        val password = passwordEditText.text.toString().trim()
+
+        if (email.isEmpty()) {
+            emailLayout.error = "Введите email"
+            isValid = false
+        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            emailLayout.error = "Некорректный формат email"
+            isValid = false
+        }
+
+        if (password.isEmpty()) {
+            passwordLayout.error = "Введите пароль"
+            isValid = false
+        } else if (password.length < 8) {
+            passwordLayout.error = "Пароль должен быть не менее 8 символов"
+            isValid = false
+        } else if (!password.any { it.isLetter() }) {
+            passwordLayout.error = "Пароль должен содержать хотя бы одну букву"
+            isValid = false
+        }
+
+        return isValid
+    }
+
     private fun showForgotPasswordEmailDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("Восстановление пароля")
-        builder.setMessage("Введите ваш email")
+        val emailInputLayout = TextInputLayout(this).apply {
+            hint = "Email"
+            setPadding(40, 20, 40, 0)
+        }
+        val input = EditText(this).apply {
+            inputType = InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+        }
+        emailInputLayout.addView(input)
 
-        val input = EditText(this)
-        input.inputType = InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
-        builder.setView(input)
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Восстановление пароля")
+            .setMessage("Введите ваш email")
+            .setView(emailInputLayout)
+            .setPositiveButton("Отправить код", null)
+            .setNegativeButton("Отмена", null)
+            .create()
 
-        builder.setPositiveButton("Отправить код") { _, _ ->
-            val email = input.text.toString().trim()
-            if (email.isNotEmpty()) {
-                sendResetCode(email)
+        dialog.setOnShowListener {
+            val button = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            button.setOnClickListener {
+                val email = input.text.toString().trim()
+                if (email.isEmpty()) {
+                    emailInputLayout.error = "Введите email"
+                } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                    emailInputLayout.error = "Некорректный email"
+                } else {
+                    sendResetCode(email)
+                    dialog.dismiss()
+                }
             }
         }
-        builder.setNegativeButton("Отмена", null)
-        builder.show()
+        dialog.show()
     }
 
     private fun sendResetCode(email: String) {
@@ -98,21 +168,34 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showResetVerifyDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("Подтверждение")
-        builder.setMessage("Введите код из письма")
-
+        val inputLayout = TextInputLayout(this).apply {
+            hint = "Код подтверждения"
+            setPadding(40, 20, 40, 0)
+        }
         val input = EditText(this)
-        builder.setView(input)
+        inputLayout.addView(input)
 
-        builder.setPositiveButton("Проверить") { _, _ ->
-            val code = input.text.toString().trim()
-            if (code.isNotEmpty()) {
-                verifyResetCode(code)
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Подтверждение")
+            .setMessage("Введите код из письма")
+            .setView(inputLayout)
+            .setPositiveButton("Проверить", null)
+            .setNegativeButton("Отмена", null)
+            .create()
+
+        dialog.setOnShowListener {
+            val button = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            button.setOnClickListener {
+                val code = input.text.toString().trim()
+                if (code.isEmpty()) {
+                    inputLayout.error = "Введите код"
+                } else {
+                    verifyResetCode(code)
+                    dialog.dismiss()
+                }
             }
         }
-        builder.setNegativeButton("Отмена", null)
-        builder.show()
+        dialog.show()
     }
 
     private fun verifyResetCode(code: String) {
@@ -134,36 +217,60 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showNewPasswordDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("Новый пароль")
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(50, 20, 50, 0)
+        }
 
-        val layout = LinearLayout(this)
-        layout.orientation = LinearLayout.VERTICAL
-        layout.setPadding(50, 20, 50, 0)
+        val passLayout = TextInputLayout(this).apply { hint = "Новый пароль" }
+        val passInput = EditText(this).apply {
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+        passLayout.addView(passInput)
 
-        val passInput = EditText(this)
-        passInput.hint = "Новый пароль"
-        passInput.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-        layout.addView(passInput)
+        val confirmLayout = TextInputLayout(this).apply { hint = "Повторите пароль" }
+        val confirmInput = EditText(this).apply {
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+        confirmLayout.addView(confirmInput)
 
-        val confirmInput = EditText(this)
-        confirmInput.hint = "Повторите пароль"
-        confirmInput.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-        layout.addView(confirmInput)
+        layout.addView(passLayout)
+        layout.addView(confirmLayout)
 
-        builder.setView(layout)
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Новый пароль")
+            .setView(layout)
+            .setPositiveButton("Изменить", null)
+            .setNegativeButton("Отмена", null)
+            .create()
 
-        builder.setPositiveButton("Изменить") { _, _ ->
-            val pass = passInput.text.toString().trim()
-            val confirm = confirmInput.text.toString().trim()
-            if (pass.isNotEmpty() && pass == confirm) {
-                resetPassword(pass, confirm)
-            } else {
-                Toast.makeText(this, "Пароли не совпадают", Toast.LENGTH_SHORT).show()
+        dialog.setOnShowListener {
+            val button = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            button.setOnClickListener {
+                val pass = passInput.text.toString().trim()
+                val confirm = confirmInput.text.toString().trim()
+
+                var valid = true
+                if (pass.length < 8) {
+                    passLayout.error = "Минимум 8 символов"
+                    valid = false
+                } else if (!pass.any { it.isLetter() }) {
+                    passLayout.error = "Нужна хотя бы одна буква"
+                    valid = false
+                }
+                
+                if (pass != confirm) {
+                    confirmLayout.error = "Пароли не совпадают"
+                    valid = false
+                }
+
+                if (valid) {
+                    resetPassword(pass, confirm)
+                    dialog.dismiss()
+                }
             }
         }
-        builder.setNegativeButton("Отмена", null)
-        builder.show()
+        dialog.show()
     }
 
     private fun resetPassword(pass: String, confirm: String) {
@@ -194,7 +301,6 @@ class MainActivity : AppCompatActivity() {
                         val sharedPref = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
                         sharedPref.edit().putString("auth_token", authToken).apply()
                         
-                        // Регистрируем устройство для пуш-уведомлений
                         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
                             if (task.isSuccessful) {
                                 val fcmToken = task.result
@@ -202,24 +308,21 @@ class MainActivity : AppCompatActivity() {
                                 NetworkClient.apiService.registerDevice("Bearer $authToken", tokenRequest)
                                     .enqueue(object : Callback<Void> {
                                         override fun onResponse(call: Call<Void>, response: Response<Void>) {
-                                            Log.d("FCM", "Device registered, response code: ${response.code()}")
                                             goToHome()
                                         }
                                         override fun onFailure(call: Call<Void>, t: Throwable) {
-                                            Log.e("FCM", "Device register error", t)
-                                            goToHome() // Все равно переходим, чтобы не блокировать вход
+                                            goToHome()
                                         }
                                     })
                             } else {
-                                Log.e("FCM", "Fetching FCM registration token failed", task.exception)
                                 goToHome()
                             }
                         }
-                        
                         Toast.makeText(this@MainActivity, "Вход успешен", Toast.LENGTH_SHORT).show()
                     }
                 } else {
                     val errorMsg = ErrorUtils.parseError(response)
+                    emailLayout.error = errorMsg // Выводим ошибку от сервера в поле email
                     Toast.makeText(this@MainActivity, errorMsg, Toast.LENGTH_LONG).show()
                 }
             }

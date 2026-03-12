@@ -20,6 +20,7 @@
             android:layout_marginBottom="24dp" />
 
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Name"
@@ -53,6 +54,7 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_price"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Price"
@@ -65,6 +67,7 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_currency"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Currency (e.g. RUB)"
@@ -89,6 +92,7 @@
             android:layout_marginBottom="12dp" />
 
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_start_date"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Start Date (YYYY-MM-DD)"
@@ -102,6 +106,7 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_next_payment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Next Payment Date (YYYY-MM-DD)"

@@ -40,7 +40,7 @@ object NetworkClient {
                 .build()
 
             retrofit = Retrofit.Builder()
-                .baseUrl("http://192.168.31.96:8000/")
+                .baseUrl("http://192.168.1.53:8000/")
                 .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
