@@ -92,12 +92,14 @@ def parse_subscription_email(raw_email, user):
     service = detect_service_from_email(sender)
     snippet = get_body_snippet(msg)
     text_to_check = subject.lower()
+    message_id = msg.get("Message-ID")
     for word in KEYWORDS:
         if word in text_to_check:
             return {
                 "subject": subject,
                 "sender": sender,
                 "snippet": snippet,
-                "service": service
+                "service": service,
+                "message_id": message_id
             }
     return None

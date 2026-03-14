@@ -169,10 +169,29 @@ def profile_view(request):
         user=request.user,
         is_active=True
     ).first()
+
     candidates_count = EmailSubscriptionCandidate.objects.filter(
         user=request.user,
         is_processed=False
     ).count()
+
+    # Статистика подписок из БД с проверкой на существование модели
+    subscriptions_count = 0
+    active_subscriptions_count = 0
+    monthly_total = 0
+
+    try:
+        from main.models import Subscription
+        subscriptions = Subscription.objects.filter(user=request.user)
+        subscriptions_count = subscriptions.count()
+        active_subscriptions_count = subscriptions.filter(status='active').count()
+
+        # Общая сумма в месяц
+        monthly_total = sum(sub.price for sub in subscriptions if sub.price)
+    except:
+        # Если модель Subscription не найдена или другая ошибка
+        pass
+
     return render(
         request,
         "accounts/profile.html",
@@ -180,7 +199,10 @@ def profile_view(request):
             "user": request.user,
             "email_account": email_account,
             "candidates_count": candidates_count,
-            "VAPID_PUBLIC_KEY": settings.WEBPUSH_SETTINGS["VAPID_PUBLIC_KEY"]
+            "subscriptions_count": subscriptions_count,
+            "active_subscriptions_count": active_subscriptions_count,
+            "monthly_total": monthly_total,
+            "VAPID_PUBLIC_KEY": settings.WEBPUSH_SETTINGS.get("VAPID_PUBLIC_KEY", "")
         }
     )
 

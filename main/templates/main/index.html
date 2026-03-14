@@ -1,37 +1,126 @@
 {% load webpush_notifications %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <title>Главная страница</title>
-    <style>
-        nav { background: #f4f4f4; padding: 10px; margin-bottom: 20px; }
-        nav a { margin-right: 15px; text-decoration: none; color: blue; }
-    </style>
     {% webpush_header %}
-
-    {% load static %}
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'css/header.css' %}">
 </head>
 <body>
+    {#-------------------------HEADER-------------------------#}
+        <header>
+            <div class="block1">
+                <h2>BANANOSUBS</h2>
+                <div class="header-link">
+                    <a href="{% url 'main:home' %}" class="button1 {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Главная</a>
+                    <a href="{% url 'main:analytics' %}" class="button2 {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">Аналитика</a>
+                    <a href="{% url 'main:forecast' %}" class="button3 {% if request.resolver_match.url_name == 'forecast' %}active{% endif %}">Прогноз</a>
+                </div>
+                {% if user.is_authenticated %}
+                <a href="{% url 'auth:profile' %}" class="registr">Профиль</a> {% else %}
+                <a href="{% url 'auth:login' %}" class="registr">Регистрация | Вход</a> {% endif %}
+            </div>
+            <div class="line" style="border-bottom: solid 1px #dadada;"></div>
+        </header>
 
-<nav>
-    <a href="{% url 'main:home' %}">Главная</a>
-    <a href="{% url 'main:analytics' %}">Аналитика</a>
-    <a href="{% url 'main:forecast' %}">Прогноз</a>
+    {#-------------------------БЛОК 2-------------------------#}
+    <div class="block2">
+        <div class="left">
+            <div class="block2_content">
+                <div class="block2_text1">Твой</div>
+                <div class="block2_text2">помощник</div>
+                <div class="block2_text3">по отслеживанию</div>
+                <div class="block2_text4">ненужных подписок</div>
+            </div>
+            <div class="block2_buttons">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'main:add_subscription' %}" class="button_vhod">Новая подписка</a>
+                    <a href="{% url 'main:subscriptions' %}" class="button_registr">Подписки</a>
+                {% else %}
+                    <a href="{% url 'auth:login' %}" class="button_vhod">Вход</a>
+                    <a href="{% url 'auth:register' %}" class="button_registr">Регистрация</a>
+                {% endif %}
+            </div>
+            <div class="block2_line">
+                <img src="{% static 'img/block1_line.png' %}" alt="#" class="block2_l">
+            </div>
+        </div>
+        <div class="right">
+            <div class="block2_img">
+                <img src="{% static 'img/block1_card.png' %}" alt="#" class="block2_card">
+            </div>
+        </div>
+    </div>
 
-    {% if user.is_authenticated %}
-        <a href="{% url 'auth:profile' %}">Аккаунт</a> <a href="{% url 'auth:logout' %}">Выход</a> {% else %}
-        <a href="{% url 'auth:login' %}">Вход</a> <a href="{% url 'auth:register' %}">Регистрация</a> {% endif %}
-</nav>
+    {#-------------------------БЛОК 3-------------------------#}
+    <div class="block3">
+        <div class="block3_content">
+            <div class="block3_text1">Как это</div>
+            <div class="block3_text2">работает?</div>
 
-<h1>Добро пожаловать на главную страницу!</h1>
+            <div class="block3_text3">Подключите почту и карты</div>
+            <div class="block3_text4">Получите полный список</div>
+            <div class="block3_text5">Управляйте и экономьте</div>
 
-{% if user.is_authenticated %}
-    <p>Привет, {{ user.username }}!</p>
-{% else %}
-    <p>Пожалуйста, войдите или зарегистрируйтесь.</p>
-{% endif %}
+            <div class="block3_text_3">Мы анализируем Ваши чеки и уведомления от сервисов. <p></p> Никаких лишних данных - только информация о подписках.</div>
+            <div class="block3_text_4">Все Ваши подписки собираются в одном месте. Ого, оказывается у <p></p> Вас есть подписка на сервис, которым Вы пользовались один раз в <p></p> 2022-м году? Теперь вы об этом знаете.</div>
+            <div class="block3_text_5">Видите, сколько реально уходит в месяц? Сервис показывает, <p></p> какими подписками Вы пользуетесь, а какие пора отключить. <p></p> Больше никаких забытых пробных периодов и денег, улетающих в <p></p> никуда.</div>
 
+            <div class="block3_line1" style="border-bottom: solid 1px #9500FF;"></div>
+            <div class="block3_line2" style="border-bottom: solid 1px #9500FF;"></div>
+
+            <div class="block3_line3" style="border-bottom: solid 1px #9500FF;"></div>
+            <div class="block3_line4" style="border-bottom: solid 1px #9500FF;"></div>
+            <div class="block3_line5" style="border-bottom: solid 1px #9500FF;"></div>
+
+            <div class="block3_number1">01.</div>
+            <div class="block3_number2">02.</div>
+            <div class="block3_number3">03.</div>
+
+            <div class="block3_img">
+                <img src="{% static 'img/block2_monkey.png' %}" alt="#" class="block3_image">
+            </div>
+        </div>
+    </div>
+
+    {#-------------------------БЛОК 4-------------------------#}
+    <div class="block4">
+        <div class="block4_text1">Почему это удобно?</div>
+        <div class="block4_line1">
+            <img src="{% static 'img/block3_pink.png' %}" alt="">
+            <div class="block4_text2">Поиск подписок</div>
+            <div class="block4_text2_2">Помните, оформили скидку <p></p> на кино ради одного <p></p> сериала? Он закончился, а <p></p> подписка все еще с Вами...</div>
+
+            <img src="{% static 'img/block3_white.png' %}" alt="">
+            <div class="block4_text3__1">Никакой</div>
+            <div class="block4_text3__2">математики</div>
+            <div class="block4_text3__3">на коленке</div>
+            <div class="block4_text3_2">Не нужно гадать, куда уходит <p></p> ползарплаты. Мы покажем правду. <p></p> Спойлер: на эти деньги можно было <p></p> купить ту самую кофемашину.</div>
+
+            <img src="{% static 'img/block3_air.png' %}" alt="">
+            <div class="block4_text4_1">Теперь Вы с</div>
+            <div class="block4_text4_2">уверенностью</div>
+            <div class="block4_text4_3">сможете сказать:</div>
+            <div class="block4_text4__2">"Сэкономил и <p></p> инвестировал в <p></p> имбу!"</div>
+        </div>
+
+        <div class="block4_line2">
+            <img src="{% static 'img/block3_air.png' %}" alt="">
+            <div class="block4_text5">"Чтобы зарплата <p></p> после списаний не <p></p> стала напоминать <p></p> сдачу"</div>
+
+            <img src="{% static 'img/block3_white.png' %}" alt="">
+            <div class="block4_text6_1">Предупредим</div>
+            <div class="block4_text6_2">перед списанием</div>
+            <div class="block4_text6__2">Никаких внезапных минусов в <p></p> день зарплаты. Мы напомним: <p></p> "Завтра списание!"</div>
+
+            <img src="{% static 'img/block3_pink.png' %}" alt="">
+            <div class="block4_text7_1">Отмена</div>
+            <div class="block4_text7_2">в один клик</div>
+            <div class="block4_text7__2">Захотелось отписаться от<p></p> онлайн-кинотеатра, который<p></p> открывали только в день <p></p> установки? Вы можете <p></p> сделать это за минуту!</div>
+        </div>
+    </div>
 </body>
 </html>

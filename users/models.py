@@ -19,6 +19,7 @@ class EmailAccount(models.Model):
         max_length=50,
         choices=PROVIDERS
     )
+    last_checked_uid = models.BigIntegerField(default=0)
     password = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

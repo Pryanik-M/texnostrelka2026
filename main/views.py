@@ -8,6 +8,7 @@ from .forms import SubscriptionForm
 from datetime import timedelta
 from django.utils import timezone
 import json
+from django.db.models import Q
 
 
 
@@ -182,11 +183,21 @@ def forecast_view(request):
 
 @login_required
 def subscriptions_list(request):
+    search = request.GET.get("search", "")
     subscriptions = Subscription.objects.filter(user=request.user)
+    if search:
+        subscriptions = subscriptions.filter(
+            Q(name__icontains=search) |
+            Q(description__icontains=search) |
+            Q(category__name__icontains=search)
+        )
     return render(
         request,
         "main/subscriptions_list.html",
-        {"subscriptions": subscriptions},
+        {
+            "subscriptions": subscriptions,
+            "search": search
+        },
     )
 
 
@@ -254,16 +265,23 @@ def email_disconnect(request):
     return redirect("auth:profile")
 
 
-@login_required
 def subscription_candidates(request):
     candidates = EmailSubscriptionCandidate.objects.filter(
         user=request.user,
         is_processed=False
     )
+
+    for c in candidates:
+        if "<" in c.sender:
+            c.sender_email = c.sender.split("<")[1].replace(">", "")
+        else:
+            c.sender_email = c.sender
+
     return render(
         request,
         "main/subscription_candidates.html",
-        {"candidates": candidates})
+        {"candidates": candidates}
+    )
 
 
 @login_required

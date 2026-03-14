@@ -59,6 +59,7 @@ class Subscription(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     notes = models.TextField(blank=True)
+    last_notification = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.name} ({self.user.username})"

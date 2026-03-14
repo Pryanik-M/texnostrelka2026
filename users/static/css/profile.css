@@ -1,24 +1,421 @@
+/* Все @font-face остаются без изменений */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Montserrat-Regular', Segoe UI, Arial, sans-serif;
+}
+
+body {
+    margin: 0;
+    overflow-x: hidden;
+    background-image: url("../img/fon1.png");
+    background-repeat: repeat;
+    background-size: 800px;
+}
+
+/* Основной контейнер профиля */
+.profile-dashboard {
+    max-width: 1400px;
+    margin: 50px auto;
+    padding: 0 20px;
+}
+
+/* Строки профиля */
+.profile-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    margin-bottom: 25px;
+}
+
+/* Карточки профиля */
+.profile-card {
+    background: white;
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.profile-card h4 {
+    font-family: 'Montserrat-Bold';
+    font-size: 18px;
+    margin-bottom: 20px;
+    color: #333;
+    border-bottom: 2px solid #9C3FFF;
+    padding-bottom: 10px;
+}
+
+/* Информация о пользователе */
+.user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.info-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    background: #e8e8e8;
+    border-radius: 10px;
+}
+
+.info-row:hover {
+    background: #dadada;
+}
+
+.info-label {
+    font-family: 'Montserrat-Medium';
+    color: #666;
+    width: 100px;
+    font-size: 14px;
+}
+
+.info-value {
+    font-family: 'Montserrat-SemiBold';
+    color: #333;
+    font-size: 15px;
+}
+
+/* Группы кнопок вертикальные */
+.btn-group-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+/* Кнопки */
+.btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-family: Benzin-Medium;
+    font-size: 14px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #9C3FFF, #b87cff);
+    color: white;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #3FFFE9, #3bb5f6);
+    color: white;
+}
+
+.btn-danger {
+    background: #FF3A9C;
+    color: white;
+}
+
+.btn-block {
+    width: 100%;
+}
+
+/* Статистика подписок */
+.stats-mini {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.stat-mini-item {
+    text-align: center;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.stat-mini-value {
+    font-family: 'Benzin-Bold';
+    font-size: 20px;
+    color: #9C3FFF;
+    margin-bottom: 5px;
+}
+
+.stat-mini-label {
+    font-family: 'Montserrat-Regular';
+    font-size: 11px;
+    color: #666;
+}
+
+/* Статус почты */
+.email-status {
+    margin-bottom: 15px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-family: 'Montserrat-Medium';
+    font-size: 13px;
+}
+
+.status-badge.connected {
+    background: rgba(63, 255, 233, 0.2);
+    color: #00a86b;
+}
+
+.status-badge.disconnected {
+    background: rgba(255, 58, 156, 0.1);
+    color: #FF3A9C;
+}
+
+.email-info {
+    padding: 12px;
+    background: #e8e8e8;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+.email-info p {
+    font-family: 'Montserrat-Regular';
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.email-info b {
+    font-family: 'Montserrat-SemiBold';
+    color: #9C3FFF;
+}
+
+.candidates-badge {
+    margin-top: 8px;
+    padding: 8px;
+    background: rgba(156, 63, 255, 0.1);
+    border-radius: 8px;
+    text-align: center;
+    font-family: 'Montserrat-Medium';
+    font-size: 13px;
+    color: #333;
+}
+
+.candidates-badge b {
+    color: #9C3FFF;
+}
+
+/* Секция уведомлений */
+.notifications-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.notifications-title {
+    font-family: 'Montserrat-Medium';
+    font-size: 15px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.notifications-hint {
+    font-family: 'Montserrat-Regular';
+    font-size: 12px;
+    color: #999;
+    margin-top: 8px;
+}
+
+.webpush-container {
+    width: 100%;
+}
+
+/* Стили для кнопки webpush на русском */
+.webpush-container button {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #9C3FFF, #b87cff);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Montserrat-Medium';
+    font-size: 13px;
+    cursor: pointer;
+    language: ru;
+}
+
+/* Секция выхода */
+.logout-section {
+    margin-top: 15px;
+}
+
+/* Модальное окно */
 .modal {
-display:none;
-position:fixed;
-z-index:1000;
-left:0;
-top:0;
-width:100%;
-height:100%;
-background-color:rgba(0,0,0,0.5);
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
 }
 
 .modal-content {
-background:white;
-margin:10% auto;
-padding:30px;
-width:400px;
-border-radius:10px;
+    background: white;
+    margin: 10% auto;
+    padding: 30px;
+    width: 500px;
+    max-width: 90%;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    position: relative;
 }
 
 .close {
-float:right;
-font-size:24px;
-cursor:pointer;
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    font-size: 24px;
+    color: #999;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #FF3A9C;
+}
+
+.modal-content h2 {
+    color: #333;
+    font-size: 24px;
+    font-family: 'Benzin-Bold';
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.instruction {
+    font-size: 15px;
+    font-family: 'Montserrat-Medium';
+    color: #666;
+    margin: 15px 0 10px;
+}
+
+.modal-content ol {
+    background: #f8f9fa;
+    padding: 15px 15px 15px 35px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+.modal-content li {
+    font-family: 'Montserrat-Regular';
+    font-size: 13px;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.modal-content input {
+    width: 100%;
+    padding: 12px 15px;
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+    font-size: 14px;
+    font-family: 'Montserrat-Regular';
+    margin-top: 10px;
+}
+
+.modal-content input:focus {
+    outline: none;
+    border-color: #9C3FFF;
+}
+
+.error-email {
+    color: #FF3A9C;
+    font-family: 'Montserrat-Medium';
+    font-size: 13px;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.btn-connect {
+    padding: 12px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #9C3FFF, #b87cff);
+    color: white;
+    border: none;
+    font-size: 15px;
+    font-family: 'Montserrat-Medium';
+    cursor: pointer;
+    width: 100%;
+    margin-top: 15px;
+}
+
+/* Ссылки */
+a {
+    text-decoration: none;
+    color: #9C3FFF;
+    font-family: 'Montserrat-Medium';
+}
+
+/* Стили для header */
+.registr {
+    align-items: center;
+    justify-content: center;
+    width: 240px;
+    height: 30px;
+    display: flex;
+    color: white;
+    font-size: 14px;
+    font-family: 'Benzin-Medium';
+    text-decoration: none;
+    background: linear-gradient(90deg, #FF1B8D 0%, #FF285A 100%);
+    border-radius: 14px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .profile-row {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-mini {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Добавьте в конец файла profile.css */
+
+/* Стили для кнопки webpush на русском */
+.webpush-container button {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #9C3FFF, #b87cff);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Montserrat-Medium';
+    font-size: 13px;
+    cursor: pointer;
+}
+
+/* Если кнопка уже имеет какой-то класс, переопределяем */
+.webpush-container .btn,
+.webpush-container input[type="submit"],
+.webpush-container button {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #9C3FFF, #b87cff);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Montserrat-Medium';
+    font-size: 13px;
+    cursor: pointer;
+}
+
+/* Стили для отключенной подписки */
+.webpush-container button[disabled] {
+    opacity: 0.7;
+    cursor: not-allowed;
 }

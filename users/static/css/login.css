@@ -138,88 +138,10 @@ body{
     margin:0;
     /*padding:0 3%;*/
     overflow-x:hidden;
-    background-image:url("../img/fon.png");
+    background-image:url("../img/fon1.png");
     background-repeat:repeat;
     background-size:800px;
 }
-
-.line{
-  margin-top: 2px;
-  width: 100%;
-}
-
-.button1{
-    color: black;
-    font-size: 14px;
-    font-family: 'Benzin-Regular';
-    font-weight: 400;
-    text-decoration: underline;
-    text-decoration-color: #9500FF;
-    line-height: normal;
-    display: inline-block;
-}
-
-.button2{
-    color: black;
-    font-size: 14px;
-    font-family: 'Benzin-Regular';
-    font-weight: 400;
-    text-decoration: none;
-    line-height: normal;
-    display: inline-block;
-}
-
-.button3{
-    color: black;
-    font-size: 14px;
-    font-family: 'Benzin-Regular';
-    font-weight: 400;
-    text-decoration: none;
-    line-height: normal;
-    display: inline-block;
-}
-
-.block1{
-    width: 100%;
-    height: 40%;
-    background: rgba(255, 255, 255, 0.7);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-sizing: border-box;
-    padding: 1% 3%;
-}
-
-h2{
-    color: #9500FF;
-    font-size: 26px;
-    font-family: Benzin-Bold;
-    font-weight: 400;
-}
-
-.registr{
-    align-items: center;
-    justify-content: center;
-    width: 240px;
-    height: 30px;
-    display: flex;
-    color: white;
-    font-size: 14px;
-    font-family: Benzin-Medium;
-    font-weight: 400;
-    text-decoration: none;
-    background: linear-gradient(90deg, #FF1B8D 0%, #FF285A 100%);
-    border-radius: 14px
-}
-
-.header-link{
-    gap: 30px;
-    display: flex;
-    align-items: center;
-}
-
-
-
 
 /* LOGIN BLOCK */
 
@@ -240,7 +162,7 @@ h2{
 }
 
 .login-card h1{
-    font-size:40px;
+    font-size:36px;
     margin-bottom:40px;
     font-family: Benzin-Medium;
 }

@@ -1,47 +1,147 @@
-<h2>Мои подписки</h2>
+{% load webpush_notifications %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Главная страница</title>
 
-<a href="{% url 'main:add_subscription' %}">Добавить подписку</a>
+    {% webpush_header %}
+    {% load static %}
 
-<ul>
+    <link rel="stylesheet" href="{% static 'css/header.css' %}">
+    <link rel="stylesheet" href="{% static 'css/subscription_list.css' %}">
+</head>
+
+<body>
+{#-------------------------HEADER-------------------------#}
+<header>
+    <div class="block1">
+        <h2>BANANOSUBS</h2>
+        <div class="header-link">
+            <a href="{% url 'main:home' %}" class="button1 {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Главная</a>
+            <a href="{% url 'main:analytics' %}" class="button2 {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">Аналитика</a>
+            <a href="{% url 'main:forecast' %}" class="button3 {% if request.resolver_match.url_name == 'forecast' %}active{% endif %}">Прогноз</a>
+        </div>
+        {% if user.is_authenticated %}
+        <a href="{% url 'auth:profile' %}" class="registr">Профиль</a> {% else %}
+        <a href="{% url 'auth:login' %}" class="registr">Регистрация | Вход</a> {% endif %}
+    </div>
+{#    <div class="line" style="border-bottom: solid 1px #e3e3e3;"></div>#}
+</header>
+
+
+<div class="login-wrapper">
+
+<div class="login-card">
+
+<h1>Мои подписки</h1>
+
+
+<div class="search-box">
+
+<input type="text" id="searchInput" placeholder="Поиск подписки..."></div>
+
+
+<a href="{% url 'main:add_subscription' %}" class="btn-add">
+Добавить подписку
+</a>
+
+
+<div class="subscriptions">
+
 {% for sub in subscriptions %}
 
-<li>
-<b>{{ sub.name }}</b> —
-{{ sub.price }} {{ sub.currency }}
+<div class="subscription-card subscription-item">
 
-<br>
-    {% if sub.service_url %}
+<div class="sub-main">
+
+<div class="sub-name">
+<b>{{ sub.name }}</b>
+</div>
+
+<div class="sub-price">
+{{ sub.price }} {{ sub.currency }}
+</div>
+
+</div>
+
+
+{% if sub.service_url %}
 <a href="{{ sub.service_url }}" target="_blank" class="btn-open">
 Открыть сервис
 </a>
 {% endif %}
 
-    <div class="subscription-actions">
-    <a href="{% url 'main:add_subscription' %}?edit_id={{ sub.id }}" class="btn-edit">
-    Редактировать
+
+<div class="subscription-actions">
+
+<a href="{% url 'main:add_subscription' %}?edit_id={{ sub.id }}" class="btn-edit">
+Редактировать
 </a>
 
-    <form action="{% url 'main:delete_subscription' sub.id %}" method="POST" style="display:inline;">
-        {% csrf_token %}
-        <button
+
+<form action="{% url 'main:delete_subscription' sub.id %}" method="POST">
+{% csrf_token %}
+
+<button
 type="submit"
 class="btn-delete"
-onclick="return confirm('Вы уверены что хотите удалить эту подписку?')">
+onclick="return confirm('Удалить подписку?')">
+
 Удалить
+
 </button>
-    </form>
+
+</form>
+
 </div>
 
+
+<div class="next-payment">
 Следующее списание:
 {{ sub.next_payment_date }}
+</div>
 
 
-
-</li>
+</div>
 
 {% empty %}
 
 <p>Подписок пока нет</p>
 
 {% endfor %}
-</ul>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+const searchInput = document.getElementById("searchInput")
+const subscriptions = document.querySelectorAll(".subscription-item")
+
+searchInput.addEventListener("input", function(){
+
+    const query = this.value.toLowerCase()
+
+    subscriptions.forEach(sub => {
+
+        const text = sub.innerText.toLowerCase()
+
+        if(text.includes(query)){
+            sub.style.display = "block"
+        }else{
+            sub.style.display = "none"
+        }
+
+    })
+
+})
+
+</script>
+
+
+</body>
+</html>

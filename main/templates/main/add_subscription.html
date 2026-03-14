@@ -1,114 +1,76 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>Добавить подписку</title>
-
-<style>
-
-body{
-font-family:Arial;
-background:#f5f5f5;
-}
-
-.container{
-width:420px;
-margin:60px auto;
-background:white;
-padding:30px;
-border-radius:10px;
-box-shadow:0 0 10px rgba(0,0,0,0.1);
-}
-
-.field{
-margin-bottom:15px;
-}
-
-input, select, textarea{
-width:100%;
-padding:10px;
-border-radius:6px;
-border:1px solid #ccc;
-}
-
-.error{
-color:red;
-font-size:14px;
-margin-top:5px;
-}
-
-button{
-margin-top:10px;
-padding:10px;
-width:100%;
-border:none;
-border-radius:6px;
-background:#4CAF50;
-color:white;
-cursor:pointer;
-}
-
-button:hover{
-background:#45a049;
-}
-
-</style>
-
+    <meta charset="UTF-8">
+    <title>Добавить подписку</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/header.css' %}">
+    <link rel="stylesheet" href="{% static 'css/add_subscription.css' %}">
 </head>
-
 <body>
+{#-------------------------HEADER-------------------------#}
+<header>
+    <div class="block1">
+        <h2>BANANOSUBS</h2>
+        <div class="header-link">
+            <a href="{% url 'main:home' %}" class="button1 {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Главная</a>
+            <a href="{% url 'main:analytics' %}" class="button2 {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">Аналитика</a>
+            <a href="{% url 'main:forecast' %}" class="button3 {% if request.resolver_match.url_name == 'forecast' %}active{% endif %}">Прогноз</a>
+        </div>
+        {% if user.is_authenticated %}
+        <a href="{% url 'auth:profile' %}" class="registr">Профиль</a> {% else %}
+        <a href="{% url 'auth:login' %}" class="registr">Регистрация | Вход</a> {% endif %}
+    </div>
+{#    <div class="line" style="border-bottom: solid 1px #e3e3e3;"></div>#}
+</header>
 
-<div class="container">
+<div class="login-wrapper">
+    <div class="login-card">
 
-<h2>
-{% if edit_sub %}
-Редактировать подписку
-{% else %}
-Добавить подписку
-{% endif %}
-</h2>
+        <h1>
+            {% if edit_sub %}
+                Редактировать подписку
+            {% else %}
+                Добавить подписку
+            {% endif %}
+        </h1>
 
-<form method="post">
+        <form method="post">
+            {% csrf_token %}
 
-{% csrf_token %}
+            {% if edit_sub %}
+                <input type="hidden" name="old_id" value="{{ edit_sub.id }}">
+            {% endif %}
 
-{% if edit_sub %}
-<input type="hidden" name="old_id" value="{{ edit_sub.id }}">
-{% endif %}
+            {% for field in form %}
+                <div class="form-group">
 
-{% for field in form %}
+                    {{ field }}
 
-<div class="field">
+                    {% if field.errors %}
+                        <div class="error-list">
+                            {% for error in field.errors %}
+                                <p class="error-text">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
 
-<label>{{ field.label }}</label>
+                </div>
+            {% endfor %}
 
-{{ field }}
+            <div class="buttons">
+                <button type="submit" class="btn-login">
+                    {% if edit_sub %}
+                        Сохранить
+                    {% else %}
+                        Добавить подписку
+                    {% endif %}
+                </button>
+            </div>
 
-{% if field.errors %}
-<div class="error">
-{% for error in field.errors %}
-<p>{{ error }}</p>
-{% endfor %}
+        </form>
+
+    </div>
 </div>
-{% endif %}
-
-</div>
-
-{% endfor %}
-
-<button type="submit">
-
-{% if edit_sub %}
-Сохранить изменения
-{% else %}
-Добавить подписку
-{% endif %}
-
-</button>
-
-</form>
-
-</div>
-
 </body>
 </html>
