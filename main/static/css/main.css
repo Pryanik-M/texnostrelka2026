@@ -128,6 +128,13 @@
     font-display: swap;
 }
 
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Segoe UI, Arial;
+}
+
 body {
     background-color: #ffff;
     overflow-x: hidden;

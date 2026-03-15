@@ -207,9 +207,25 @@ def add_subscription(request):
     edit_sub = None
     if edit_id:
         edit_sub = get_object_or_404(Subscription, id=edit_id, user=request.user)
+    candidate_id = request.GET.get("candidate")
+    initial_data = None
+
+    if candidate_id:
+        candidate = get_object_or_404(
+            EmailSubscriptionCandidate,
+            id=candidate_id,
+            user=request.user
+        )
+
+        initial_data = {
+            "name": candidate.detected_service,
+            "description": candidate.subject
+        }
     if request.method == "POST":
         if edit_sub:
             form = SubscriptionForm(request.POST, instance=edit_sub)
+        if initial_data:
+            form = SubscriptionForm(request.POST, initial=initial_data)
         else:
             form = SubscriptionForm(request.POST)
         if form.is_valid():
@@ -282,6 +298,7 @@ def subscription_candidates(request):
         "main/subscription_candidates.html",
         {"candidates": candidates}
     )
+
 
 
 @login_required

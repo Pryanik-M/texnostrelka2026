@@ -6,13 +6,13 @@ def send_detection_notification(user, subject, service_name, candidate_id):
         "title": f"Найдена подписка: {service_name}",
         "body": f"Письмо: {subject}",
         "icon": "/static/icons/subscription.png",
+        "url": f"/subscriptions/add/?candidate={candidate_id}/",
         "type": "detection",
         "candidate_id": candidate_id,
         "actions": [
             {"action": "add", "title": "✅ Добавить"},
             {"action": "ignore", "title": "❌ Игнорировать"}
-        ],
-        "url": f"/auth/detected/{candidate_id}/"
+        ]
     }
     send_user_notification(user=user, payload=payload, ttl=1000)
 

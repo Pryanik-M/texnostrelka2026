@@ -46,7 +46,7 @@
                        class="btn-open">
                         Открыть письмо</a>
                     <div class="subscription-actions">
-                        <a href="{% url 'main:create_from_email' c.id %}" class="btn-edit">Добавить подписку</a>
+                        <a href="{% url 'main:add_subscription' %}?candidate={{ c.id }}" class="btn-edit">Добавить подписку</a>
                         <form method="post" action="{% url 'main:ignore_candidate' c.id %}">
                             {% csrf_token %}
                             <button type="submit" class="btn-delete"
