@@ -167,3 +167,13 @@ else:
 LOGIN_URL = "auth:login"
 LOGIN_REDIRECT_URL = "main:home"
 LOGOUT_REDIRECT_URL = "main:home"
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://bananosubs.ru",
+    "https://www.bananosubs.ru",
+]
+
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

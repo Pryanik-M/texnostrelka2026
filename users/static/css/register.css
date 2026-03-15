@@ -143,6 +143,11 @@ body{
     background-size:800px;
 }
 
+.error {
+    margin-bottom: 15px;
+    font-family: Montserrat-Light;
+}
+
 /* LOGIN BLOCK */
 
 .login-wrapper{

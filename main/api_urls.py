@@ -2,6 +2,7 @@ from django.urls import path
 from . import api_views
 
 urlpatterns = [
+    path("categories/", api_views.categories_api),
     path("subscriptions/", api_views.subscriptions_api),
     path("subscriptions/<int:sub_id>/", api_views.subscription_detail_api),
     path("email/sync/", api_views.email_sync_api),
