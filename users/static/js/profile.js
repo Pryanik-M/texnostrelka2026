@@ -31,6 +31,7 @@ function changeWebpushButtonText() {
         if (webpushContainer) {
             const buttons = webpushContainer.getElementsByTagName('button');
             const inputs = webpushContainer.getElementsByTagName('input');
+            const messages = webpushContainer.querySelectorAll(".webpush-message");
 
             // Меняем текст для кнопок
             for (let btn of buttons) {
@@ -40,6 +41,20 @@ function changeWebpushButtonText() {
                     } else {
                         btn.textContent = 'Подписаться на уведомления';
                     }
+                }
+            }
+
+            for (let msg of messages) {
+                if (msg.textContent.includes("Successfully subscribed")) {
+                    msg.textContent = "Вы успешно подписались на push-уведомления.";
+                }
+
+                if (msg.textContent.includes("Successfully unsubscribed")) {
+                    msg.textContent = "Вы успешно отписались от push-уведомлений.";
+                }
+
+                if (msg.textContent.includes("Permission denied")) {
+                    msg.textContent = "Браузер запретил отправку уведомлений.";
                 }
             }
 

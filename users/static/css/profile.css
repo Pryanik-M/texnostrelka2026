@@ -209,7 +209,7 @@ body {
 .notifications-section {
     margin-bottom: 20px;
     padding: 15px;
-    background: #f8f9fa;
+    background: #e8e8e8;
     border-radius: 10px;
 }
 
@@ -229,25 +229,36 @@ body {
 
 .webpush-container {
     width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
 }
 
 /* Стили для кнопки webpush на русском */
 .webpush-container button {
-    width: 100%;
-    padding: 10px;
+    width: 220px;
+    padding: 12px;
     background: linear-gradient(135deg, #9C3FFF, #b87cff);
     color: white;
     border: none;
     border-radius: 8px;
     font-family: 'Montserrat-Medium';
-    font-size: 13px;
+    font-size: 14px;
     cursor: pointer;
+    margin-bottom: 15px;
+}
+
+.webpush-message {
+    text-align: center;
+    width: 100%;
     language: ru;
 }
 
 /* Секция выхода */
 .logout-section {
     margin-top: 15px;
+    width: 100%;
 }
 
 /* Модальное окно */

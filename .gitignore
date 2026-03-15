@@ -13,7 +13,7 @@ media
 # Virtualenv
 .venv/
 venv/
-env/
+texnostrelka/env/
 
 # PyCharm
 .idea/
@@ -45,3 +45,8 @@ staticfiles/
 
 firebase_key.json
 *.json
+
+
+celerybeat-schedule
+.venv
+__pycache__

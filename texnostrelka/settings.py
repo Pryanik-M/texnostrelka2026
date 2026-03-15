@@ -11,12 +11,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 EMAIL_ENCRYPTION_KEY = os.getenv("EMAIL_ENCRYPTION_KEY")
 DEBUG = os.getenv("DEBUG", "False") == "True"
-ALLOWED_HOSTS = [
-    "127.0.0.1",
-    "localhost",
-    "192.168.31.98",
-]
-
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 INSTALLED_APPS = [
     'users',
     'main',
@@ -34,7 +29,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -63,12 +57,24 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'texnostrelka.wsgi.application'
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+if os.getenv("USE_POSTGRES") == "True":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.getenv("POSTGRES_DB"),
+            "USER": os.getenv("POSTGRES_USER"),
+            "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
+            "HOST": os.getenv("POSTGRES_HOST"),
+            "PORT": os.getenv("POSTGRES_PORT"),
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -94,7 +100,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
-
+STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
@@ -102,22 +108,22 @@ STATICFILES_DIRS = [
 # ПЕРЕМЕННЫЕ ДЛЯ ПОЧТЫ
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND")
 EMAIL_HOST = os.getenv("EMAIL_HOST")
-EMAIL_PORT = os.getenv("EMAIL_PORT")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT"))
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS") == "True"
 
 # ПЕРЕМЕННЫЕ ДЛЯ WEBPUSH И ПРОВЕРКИ ПОЧТЫ КАЖДЫЕ 60 СЕК
 WEBPUSH_SETTINGS = {
-    "VAPID_PUBLIC_KEY": "BFdSZIhAg5Y4kLMF7DeTcSkBtdLtbAtcLeGdjmdz7sBiqJC83z73b7gGqQsaVHx-BOVTK6aDWH1E-b_RX8FM5Sg=",
-    "VAPID_PRIVATE_KEY": "BAsjVrLhI_W3sS6CVkf8NJTju-IE-CZhto_fKFT1SuY=",
-    "VAPID_ADMIN_EMAIL": "admin@example.com",
-    "SERVICE_WORKER_PATH": "/static/service-worker.js"
+    "VAPID_PUBLIC_KEY": os.getenv("VAPID_PUBLIC_KEY"),
+    "VAPID_PRIVATE_KEY": os.getenv("VAPID_PRIVATE_KEY"),
+    "VAPID_ADMIN_EMAIL": os.getenv("VAPID_ADMIN_EMAIL"),
+    "SERVICE_WORKER_PATH": "/static/service-worker.js",
 }
 WEBPUSH_SERVICE_WORKER_PATH = '/static/service-worker.js'
 
-CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
-CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
+CELERY_BROKER_URL = os.getenv("REDIS_URL")
+CELERY_RESULT_BACKEND = os.getenv("REDIS_URL")
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
@@ -150,7 +156,12 @@ SIMPLE_JWT = {
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-FIREBASE_CREDENTIALS = BASE_DIR / "firebase_key.json"
+firebase_path = os.getenv("FIREBASE_CREDENTIALS")
+
+if firebase_path.startswith("/"):
+    FIREBASE_CREDENTIALS = firebase_path
+else:
+    FIREBASE_CREDENTIALS = BASE_DIR / firebase_path
 
 
 LOGIN_URL = "auth:login"
