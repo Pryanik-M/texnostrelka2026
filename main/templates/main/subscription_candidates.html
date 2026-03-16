@@ -1,19 +1,66 @@
-<h2>Найденные подписки</h2>
-{% for c in candidates %}
-<div class="candidate-card">
-<p><b>{{ c.detected_service }}</b></p>
-<p>{{ c.subject }}</p>
+{% load webpush_notifications %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Найденные подписки</title>
 
-<a href="https://mail.yandex.ru/#search?request={{ c.subject }}" target="_blank">
-Открыть письмо
-</a>
-<a href="{% url 'main:create_from_email' c.id %}">
-Добавить подписку
-</a>
-<a href="{% url 'main:ignore_candidate' c.id %}">
-Игнорировать
-</a>
+{% webpush_header %}
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'css/header.css' %}">
+<link rel="stylesheet" href="{% static 'css/subscription_list.css' %}">
+
+</head>
+
+<body>
+    {#-------------------------HEADER-------------------------#}
+    <header>
+        <div class="block1">
+            <h2>BANANOSUBS</h2>
+            <div class="header-link">
+                <a href="{% url 'main:home' %}" class="button1 {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Главная</a>
+                <a href="{% url 'main:analytics' %}" class="button2 {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">Аналитика</a>
+                <a href="{% url 'main:forecast' %}" class="button3 {% if request.resolver_match.url_name == 'forecast' %}active{% endif %}">Прогноз</a>
+            </div>
+            {% if user.is_authenticated %}
+            <a href="{% url 'auth:profile' %}" class="registr">Профиль</a> {% else %}
+            <a href="{% url 'auth:login' %}" class="registr">Регистрация | Вход</a> {% endif %}
+        </div>
+    {#    <div class="line" style="border-bottom: solid 1px #e3e3e3;"></div>#}
+    </header>
+
+<div class="login-wrapper">
+    <div class="login-card">
+        <h1>Найденные подписки</h1>
+        <div class="subscriptions">
+            {% for c in candidates %}
+                <div class="subscription-card">
+                    <div class="sub-main">
+                        <div class="sub-name">{{ c.detected_service }}</div>
+                        <div class="sub-price">{{ c.sender_email }}</div>
+                    </div>
+                    <div class="email-subject">{{ c.subject }}</div>
+                    <a href="https://mail.yandex.ru/#search?request={{ c.subject }}"
+                       target="_blank"
+                       class="btn-open">
+                        Открыть письмо</a>
+                    <div class="subscription-actions">
+                        <a href="{% url 'main:add_subscription' %}?candidate={{ c.id }}" class="btn-edit">Добавить подписку</a>
+                        <form method="post" action="{% url 'main:ignore_candidate' c.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-delete"
+                                    onclick="return confirm('Игнорировать эту подписку?')">
+                                Игнорировать
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% empty %}
+                <p>Новых подписок не найдено</p>
+            {% endfor %}
+        </div>
+    </div>
 </div>
-{% empty %}
-<p>Новых подписок не найдено</p>
-{% endfor %}
+</body>
+</html>

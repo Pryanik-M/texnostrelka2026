@@ -1,55 +1,109 @@
+<!DOCTYPE html>
+<html lang="ru">
 <head>
+    <meta charset="UTF-8">
+    <title>Прогноз подписок</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/header.css' %}">
+    <link rel="stylesheet" href="{% static 'css/forecast.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/forecast.css' %}">
 </head>
-
 <body>
-<h1>Прогноз расходов</h1>
 
-<h2>Ближайшие списания (7 дней)</h2>
-<ul>
-    {% for sub in upcoming_subscriptions %}
-    <li>
-        <b>{{ sub.name }}</b> — {{ sub.price }} {{ sub.currency }}
-        <br>Дата списания: {{ sub.next_payment_date }}
-    </li>
-    {% empty %}
-    <p>Ближайших списаний нет</p>
-    {% endfor %}
-</ul>
-<h3>Всего спишется за 7 дней: {{ total_week_spending }}</h3>
+{#-------------------------HEADER-------------------------#}
+<header>
+    <div class="block1">
+        <h2>BANANOSUBS</h2>
+        <div class="header-link">
+            <a href="{% url 'main:home' %}" class="button1 {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Главная</a>
+            <a href="{% url 'main:analytics' %}" class="button2 {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">Аналитика</a>
+            <a href="{% url 'main:forecast' %}" class="button3 {% if request.resolver_match.url_name == 'forecast' %}active{% endif %}">Прогноз</a>
+        </div>
+        {% if user.is_authenticated %}
+        <a href="{% url 'auth:profile' %}" class="registr">Профиль</a> {% else %}
+        <a href="{% url 'auth:login' %}" class="registr">Регистрация | Вход</a> {% endif %}
+    </div>
+{#    <div class="line" style="border-bottom: solid 1px #e3e3e3;"></div>#}
+</header>
 
-<hr>
-<h2>Прогноз расходов на месяц</h2>
-<h3>Примерные расходы в месяц: {{ monthly_forecast }}</h3>
+<div class="forecast-dashboard">
+    <!-- Статистические карточки -->
+    <div class="stats">
+        <div class="stat-card purple">
+            <h3>Ближайшие списания (7 дней)</h3>
+            <p class="stat-number">{{ total_week_spending }} руб.</p>
+            <p class="stat-desc">всего спишется</p>
+        </div>
+        <div class="stat-card blue">
+            <h3>Прогноз на месяц</h3>
+            <p class="stat-number">{{ monthly_forecast }} руб.</p>
+            <p class="stat-desc">примерные расходы</p>
+        </div>
+        <div class="stat-card pink">
+            <h3>Прогноз на год</h3>
+            <p class="stat-number">{{ yearly_forecast }} руб.</p>
+            <p class="stat-desc">примерные расходы</p>
+        </div>
+    </div>
+    <!-- Основной грид с двумя колонками -->
+    <div class="forecast-grid">
+        <!-- Левая колонка - текстовые блоки -->
+        <div class="left-column">
+            <!-- Ближайшие списания -->
+            <div class="forecast-card">
+                <h2>Ближайшие списания (7 дней)</h2>
+                <div class="upcoming-list">
+                    {% for sub in upcoming_subscriptions %}
+                    <div class="upcoming-item">
+                        <div class="upcoming-info">
+                            <span class="sub-name">{{ sub.name }}</span>
+                            <span class="sub-date">{{ sub.next_payment_date }}</span>
+                        </div>
+                        <span class="sub-price">{{ sub.price }} {{ sub.currency }}</span>
+                    </div>
+                    {% empty %}
+                    <p class="empty-message">Ближайших списаний нет</p>
+                    {% endfor %}
+                </div>
+            </div>
+            <!-- Рекомендации по экономии -->
+            <div class="forecast-card">
+                <h2>Рекомендации по экономии</h2>
+                <div class="recommendations">
+                    {% if most_expensive_subscription %}
+                    <div class="recommendation-item">
+                        <p>Самая дорогая подписка: <b>{{ most_expensive_subscription.name }}</b> — {{ most_expensive_subscription.price }} {{ most_expensive_subscription.currency }}</p>
+                    </div>
+                    {% endif %}
 
-<hr>
-<h2>Календарь списаний</h2>
-<div id="calendar"></div>
-<h3 id="selected-date"></h3>
-<ul id="payments-list"></ul>
+                    {% if top_category %}
+                    <div class="recommendation-item">
+                        <p>Больше всего расходов в категории: <b>{{ top_category }}</b></p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <!-- График прогноза на год -->
+            <div class="forecast-card chart-card">
+                <h2>Прогноз расходов на год</h2>
+                <canvas id="yearChart"></canvas>
+            </div>
+        </div>
 
-<hr>
-<h2>Прогноз расходов на год</h2>
-<h3>Примерные расходы за год: {{ yearly_forecast }}</h3>
-<canvas id="yearChart" width="600" height="300"></canvas>
+        <!-- Правая колонка - календарь -->
+        <div class="right-column">
+            <div class="forecast-card calendar-card">
+                <h2>Календарь списаний</h2>
+                <div id="calendar"></div>
+                <div class="selected-date-info" id="selected-date"></div>
+                <ul class="payments-list" id="payments-list"></ul>
+            </div>
+        </div>
 
-<hr>
-<h2>Рекомендации по экономии</h2>
-{% if most_expensive_subscription %}
-    <p>💰 Самая дорогая подписка: <b>{{ most_expensive_subscription.name }}</b> — {{ most_expensive_subscription.price }} {{ most_expensive_subscription.currency }}</p>
-{% endif %}
-
-{% if top_category %}
-    <p>📊 Больше всего расходов в категории: <b>{{ top_category }}</b></p>
-{% endif %}
-
-{% if monthly_forecast > 50 %}
-    <p>⚠️ Вы тратите более <b>50</b> в месяц на подписки. Возможно, стоит пересмотреть некоторые из них.</p>
-{% endif %}
+    </div>
+</div>
 
 <script>
     window.calendarData = {{ calendar_data|safe }};
@@ -58,3 +112,4 @@
 </script>
 <script src="{% static 'js/forecast.js' %}"></script>
 </body>
+</html>

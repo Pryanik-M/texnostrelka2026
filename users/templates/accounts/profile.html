@@ -1,100 +1,154 @@
-{% load static %}
-{% load webpush_notifications %}
-{% webpush_header %}
-
+<!DOCTYPE html>
+<html lang="ru">
 <head>
+    <meta charset="UTF-8">
+    <title>BANANOSUBS - Профиль</title>
+    {% load static %}
+    {% load webpush_notifications %}
+    {% webpush_header %}
+    <link rel="stylesheet" href="{% static 'css/header.css' %}">
     <link rel="stylesheet" href="{% static 'css/profile.css' %}">
 </head>
-<h3>Подписки</h3>
+<body>
+    {#-------------------------HEADER-------------------------#}
+    <header>
+        <div class="block1">
+            <h2>BANANOSUBS</h2>
+            <div class="header-link">
+                <a href="{% url 'main:home' %}" class="button1 {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Главная</a>
+                <a href="{% url 'main:analytics' %}" class="button2 {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">Аналитика</a>
+                <a href="{% url 'main:forecast' %}" class="button3 {% if request.resolver_match.url_name == 'forecast' %}active{% endif %}">Прогноз</a>
+            </div>
+            {% if user.is_authenticated %}
+            <a href="{% url 'auth:profile' %}" class="registr">Профиль</a> {% else %}
+            <a href="{% url 'auth:login' %}" class="registr">Регистрация | Вход</a> {% endif %}
+        </div>
+    {#    <div class="line" style="border-bottom: solid 1px #e3e3e3;"></div>#}
+    </header>
 
-<a href="{% url 'main:add_subscription' %}">
-Добавить подписку вручную
-</a>
+    <div class="profile-dashboard">
+        <!-- Первая строка - две карточки -->
+        <div class="profile-row">
+            <!-- Карточка с информацией о пользователе -->
+            <div class="profile-card">
+                <h4>Информация о пользователе</h4>
+                <div class="user-info">
+                    <div class="info-row">
+                        <span class="info-label">Имя:</span>
+                        <span class="info-value">{{ user.username }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Почта:</span>
+                        <span class="info-value">{{ user.email|default:"Не указан" }}</span>
+                    </div>
+                </div>
+            </div>
 
-<br><br>
+            <!-- Карточка с управлением подписками -->
+            <div class="profile-card">
+                <h4>Управление подписками</h4>
+                <div class="btn-group-vertical">
+                    <a href="{% url 'main:add_subscription' %}" class="btn btn-primary">Добавить подписку</a>
+                    <a href="{% url 'main:subscriptions' %}" class="btn btn-secondary">Все подписки</a>
+                </div>
+                <div class="stats-mini">
+                    <div class="stat-mini-item">
+                        <div class="stat-mini-value">{{ subscriptions_count|default:"0" }}</div>
+                        <div class="stat-mini-label">Всего подписок</div>
+                    </div>
+                    <div class="stat-mini-item">
+                        <div class="stat-mini-value">{{ active_subscriptions_count|default:"0" }}</div>
+                        <div class="stat-mini-label">Активных</div>
+                    </div>
+                    <div class="stat-mini-item">
+                        <div class="stat-mini-value">{{ monthly_total|default:"0" }} ₽</div>
+                        <div class="stat-mini-label">В месяц</div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-<a href="{% url 'main:subscriptions' %}">
-Просмотреть все подписки
-</a>
+        <!-- Вторая строка - две карточки -->
+        <div class="profile-row">
+            <!-- Карточка с почтой -->
+            <div class="profile-card">
+                <h4>Подключение почты</h4>
+                <div class="email-status">
+                    {% if email_account %}
+                        <span class="status-badge connected">Почта подключена</span>
+                    {% else %}
+                        <span class="status-badge disconnected">Почта не подключена</span>
+                    {% endif %}
+                </div>
 
+                {% if email_account %}
+                    <div class="email-info">
+                        <p  class="info-label">Почта: </p><p class="info-value">{{ email_account.email }}</p>
+                        {% if candidates_count > 0 %}
+                            <div class="candidates-badge">
+                                Найдено новых подписок: <b>{{ candidates_count }}</b>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="btn-group-vertical">
+                        <a href="{% url 'main:subscription_candidates' %}" class="btn btn-primary">Найденные подписки</a>
+                        <a href="{% url 'main:email_disconnect' %}" class="btn btn-danger">Отключить почту</a>
+                    </div>
+                {% else %}
+                    <div class="btn-group-vertical">
+                        <button onclick="openEmailModal()" class="btn btn-primary">Подключить почту</button>
+                    </div>
+                {% endif %}
+            </div>
 
-<h3>Почта</h3>
+            <!-- Карточка с уведомлениями и выходом -->
+            <!-- Карточка с уведомлениями и выходом -->
+            <div class="profile-card">
+                <h4>Уведомления и безопасность</h4>
 
-{% if email_account %}
+                <!-- Уведомления на русском -->
+                <div class="notifications-section">
+                    <div class="webpush-container" id="webpush-container">
+                        {% webpush_button %}
+                    </div>
+                    <div class="notifications-hint">
+                        Получайте уведомления о предстоящих списаниях
+                    </div>
+                </div>
 
-<p>
-Подключена почта:
-<b>{{ email_account.email }}</b>
-</p>
+                <!-- Выход -->
+                <div class="logout-section">
+                    <a href="{% url 'auth:logout' %}" class="btn btn-danger btn-block">Выйти из аккаунта</a>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<p style="color:green;">
-Почта подключена
-</p>
+    <!-- Модальное окно подключения почты -->
+    <div id="emailModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEmailModal()">&times;</span>
+            <h2>Подключение почты</h2>
+            <p class="instruction">Как получить пароль приложения:</p>
+            <ol>
+                <li>Откройте настройки вашего почтового аккаунта</li>
+                <li>Найдите раздел "Пароли приложений"</li>
+                <li>Создайте новый пароль для приложения</li>
+                <li>Скопируйте пароль и вставьте его ниже</li>
+            </ol>
+            {% if messages %}
+                {% for message in messages %}
+                    <p class="error-email">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+            <form method="post" action="{% url 'auth:connect_email' %}">
+                {% csrf_token %}
+                <input type="password" name="password" required placeholder="Введите пароль приложения">
+                <button type="submit" class="btn-connect">Подключить почту</button>
+            </form>
+        </div>
+    </div>
 
-<a href="{% url 'main:email_sync' %}">
-Проверить почту
-</a>
-
-<a href="{% url 'main:email_disconnect' %}">
-Отключить почту
-</a>
-
-<a href="{% url 'main:subscription_candidates' %}">
-Найденные подписки
-</a>
-
-{% else %}
-
-<p style="color:red;">
-Почта не подключена
-</p>
-
-<button onclick="openEmailModal()">
-Подключить почту
-</button>
-
-{% endif %}
-
-{% webpush_button %}
-
-
-<div id="emailModal" class="modal">
-
-<div class="modal-content">
-
-<span class="close" onclick="closeEmailModal()">&times;</span>
-
-<h2>Подключение почты</h2>
-
-<p><b>Инструкция:</b></p>
-
-<ol>
-<li>Откройте настройки вашего почтового аккаунта</li>
-<li>Найдите раздел <b>Пароли приложений</b></li>
-<li>Создайте новый пароль для приложения</li>
-<li>Скопируйте пароль и вставьте его ниже</li>
-</ol>
-    {% if messages %}
-    {% for message in messages %}
-        <p class="error-email" style="color: red">{{ message }}</p>
-    {% endfor %}
-{% endif %}
-
-<form method="post" action="{% url 'auth:connect_email' %}">
-{% csrf_token %}
-
-<label>Пароль приложения</label>
-
-<input type="password" name="password" required>
-
-<br><br>
-
-<button type="submit">
-Подключить почту
-</button>
-
-</form>
-
-</div>
-</div>
-<script src="{% static 'js/profile.js' %}"></script>
+    <script src="{% static 'js/profile.js' %}"></script>
+</body>
+</html>

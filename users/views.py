@@ -30,9 +30,25 @@ def login_view(request):
 
 
 def register_view(request):
+
     form = RegistrationForm(request.POST or None)
+
     if request.method == "POST" and form.is_valid():
-        request.session["register_data"] = form.cleaned_data
+
+        data = form.cleaned_data
+
+        code = generate_2fa_code(6)
+
+        request.session["register_data"] = data
+        request.session["email_code"] = hash_code(code)
+
+        send_mail(
+            "Код подтверждения регистрации",
+            f"Ваш код: {code}",
+            settings.DEFAULT_FROM_EMAIL,
+            [data["email"]],
+            fail_silently=False
+        )
         return redirect("auth:register_verify")
     return render(request, "accounts/register.html", {"form": form})
 
@@ -41,42 +57,58 @@ def register_verify_view(request):
     data = request.session.get("register_data")
     if not data:
         return redirect("auth:register")
-    form = VerifyForm(request.POST or None)
-    # Логика отправки кода
-    if request.method == "POST" and request.POST.get("action") == "send":
-        code = generate_2fa_code(6)
-        request.session["email_code"] = hash_code(code)
-        send_mail(
-            "Код подтверждения регистрации",
-            f"Ваш код: {code}",
-            settings.DEFAULT_FROM_EMAIL,
-            [data["email"]],
-        )
-        return render(request, "accounts/verify.html", {"form": form, "code_sent": True})
-    if request.method == "POST" and request.POST.get("action") == "verify":
+
+    if request.method == "POST":
+        # ПРОВЕРКА НАЖАТИЯ КНОПКИ ПОВТОРА
+        if request.POST.get("action") == "send":
+            code = generate_2fa_code(6)
+            request.session["email_code"] = hash_code(code)
+            send_mail(
+                "Новый код подтверждения",
+                f"Ваш новый код: {code}",
+                settings.DEFAULT_FROM_EMAIL,
+                [data["email"]],
+                fail_silently=False
+            )
+            messages.success(request, "Код отправлен повторно!")
+            return redirect("auth:register_verify")
+
+        # ОБЫЧНАЯ ПРОВЕРКА КОДА
+        form = VerifyForm(request.POST)
         if form.is_valid():
-            input_code = form.cleaned_data['code']
+            input_code = form.cleaned_data["code"]
             if hash_code(input_code) == request.session.get("email_code"):
-                user = User.objects.create_user(
+                User.objects.create_user(
                     username=data["username"],
                     email=data["email"],
                     password=data["password"]
                 )
-                login(request, user)
-                request.session.pop("register_data")
-                request.session.pop("email_code")
-                return redirect("auth:profile")
+                request.session.pop("register_data", None)
+                request.session.pop("email_code", None)
+                return redirect("auth:login")
             else:
-                form.add_error('code', "Неверный или просроченный код.")
+                form.add_error("code", "Неверный код")
+    else:
+        form = VerifyForm()
+
     return render(request, "accounts/verify.html", {"form": form})
 
 
 def forgot_password_view(request):
     form = ForgotPasswordForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        email = form.cleaned_data['email']
+        email = form.cleaned_data["email"]
         user = User.objects.get(email=email)
+        code = generate_2fa_code(6)
         request.session["reset_user"] = user.id
+        request.session["reset_code"] = hash_code(code)
+        send_mail(
+            "Код сброса пароля",
+            f"Ваш код: {code}",
+            settings.DEFAULT_FROM_EMAIL,
+            [email],
+            fail_silently=False
+        )
         return redirect("auth:forgot_verify")
     return render(request, "accounts/forgot_password.html", {"form": form})
 
@@ -85,38 +117,48 @@ def forgot_verify_view(request):
     user_id = request.session.get("reset_user")
     if not user_id:
         return redirect("auth:login")
-    user = User.objects.get(id=user_id)
     form = VerifyForm(request.POST or None)
-    if request.method == "POST" and request.POST.get("action") == "send":
-        code = generate_2fa_code(6)
-        request.session["reset_code"] = hash_code(code)
-        send_mail(
-            "Код сброса пароля",
-            f"Ваш код: {code}",
-            settings.DEFAULT_FROM_EMAIL,
-            [user.email],
-        )
-        return render(request, "accounts/verify.html", {"form": form, "code_sent": True})
-    if request.method == "POST" and request.POST.get("action") == "verify":
-        if form.is_valid():
-            input_code = form.cleaned_data['code']
-            if hash_code(input_code) == request.session.get("reset_code"):
-                request.session.pop("reset_code")
-                return redirect("auth:reset_password")
-            else:
-                form.add_error('code', "Неверный код.")
-    return render(request, "accounts/verify.html", {"form": form})
+    if request.method == "POST":
+        # ПРОВЕРКА НАЖАТИЯ КНОПКИ ПОВТОРА
+        if request.POST.get("action") == "send":
+            user = get_object_or_404(User, id=user_id)
+            code = generate_2fa_code(6)
+            request.session["email_code"] = hash_code(code)
+            send_mail(
+                "Новый код подтверждения",
+                f"Ваш новый код: {code}",
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=False
+            )
+            messages.success(request, "Код отправлен повторно!")
+            return redirect("auth:forgot_verify")
+    if request.method == "POST" and form.is_valid():
+        input_code = form.cleaned_data["code"]
+        if hash_code(input_code) == request.session.get("reset_code"):
+            request.session.pop("reset_code", None)
+            return redirect("auth:reset_password")
+        else:
+            form.add_error("code", "Неверный код")
+    return render(request, "accounts/verify.html", {
+        "form": form,
+        "code_sent": True
+    })
 
 
 def reset_password_view(request):
     user_id = request.session.get("reset_user")
-    if not user_id: return redirect("auth:login")
+    if not user_id:
+        return redirect("auth:login")
     form = ResetPasswordForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         user = User.objects.get(id=user_id)
-        user.set_password(form.cleaned_data['password'])
+        user.set_password(form.cleaned_data["password"])
         user.save()
-        request.session.pop("reset_user")
+        # очищаем сессию
+        request.session.pop("reset_user", None)
+        request.session.pop("reset_code", None)
+        request.session.pop("reset_verified", None)
         return redirect("auth:login")
     return render(request, "accounts/reset_password.html", {"form": form})
 
@@ -127,10 +169,29 @@ def profile_view(request):
         user=request.user,
         is_active=True
     ).first()
+
     candidates_count = EmailSubscriptionCandidate.objects.filter(
         user=request.user,
         is_processed=False
     ).count()
+
+    # Статистика подписок из БД с проверкой на существование модели
+    subscriptions_count = 0
+    active_subscriptions_count = 0
+    monthly_total = 0
+
+    try:
+        from main.models import Subscription
+        subscriptions = Subscription.objects.filter(user=request.user)
+        subscriptions_count = subscriptions.count()
+        active_subscriptions_count = subscriptions.filter(status='active').count()
+
+        # Общая сумма в месяц
+        monthly_total = sum(sub.price for sub in subscriptions if sub.price)
+    except:
+        # Если модель Subscription не найдена или другая ошибка
+        pass
+
     return render(
         request,
         "accounts/profile.html",
@@ -138,7 +199,10 @@ def profile_view(request):
             "user": request.user,
             "email_account": email_account,
             "candidates_count": candidates_count,
-            "VAPID_PUBLIC_KEY": settings.WEBPUSH_SETTINGS["VAPID_PUBLIC_KEY"]
+            "subscriptions_count": subscriptions_count,
+            "active_subscriptions_count": active_subscriptions_count,
+            "monthly_total": monthly_total,
+            "VAPID_PUBLIC_KEY": settings.WEBPUSH_SETTINGS.get("VAPID_PUBLIC_KEY", "")
         }
     )
 

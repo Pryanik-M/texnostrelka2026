@@ -1,103 +1,68 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <title>Аналитика подписок</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/analytics.css' %}">
+    <link rel="stylesheet" href="{% static 'css/header.css' %}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+
+
+{#-------------------------HEADER-------------------------#}
+<header>
+    <div class="block1">
+        <h2>BANANOSUBS</h2>
+        <div class="header-link">
+            <a href="{% url 'main:home' %}" class="button1 {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Главная</a>
+            <a href="{% url 'main:analytics' %}" class="button2 {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">Аналитика</a>
+            <a href="{% url 'main:forecast' %}" class="button3 {% if request.resolver_match.url_name == 'forecast' %}active{% endif %}">Прогноз</a>
+        </div>
+        {% if user.is_authenticated %}
+        <a href="{% url 'auth:profile' %}" class="registr">Профиль</a> {% else %}
+        <a href="{% url 'auth:login' %}" class="registr">Регистрация | Вход</a> {% endif %}
+    </div>
+{#    <div class="line" style="border-bottom: solid 1px #e3e3e3;"></div>#}
+</header>
+
 <div class="dashboard">
-    <h1>Аналитика подписок</h1>
-
-    <div class="block">
-        <h2>Общая информация</h2>
-        <p><b>Самая дорогая:</b> {% if most_expensive %}{{ most_expensive.name }} — {{ most_expensive.price }} {{ most_expensive.currency }}{% endif %}</p>
-        <p><b>Самая дешёвая:</b> {% if cheapest %}{{ cheapest.name }} — {{ cheapest.price }} {{ cheapest.currency }}{% endif %}</p>
-    </div>
-
-    <div class="block">
-        <h2>Подписки по категориям</h2>
-        <div class="row">
-            <div style="min-width:250px">
-                <h3>Текстовая статистика</h3>
-                <ul>
-                    {% if subscriptions_by_category %}
-                        {% for item in subscriptions_by_category %}
-                        <li><b>{{ item.category__name|default:"Без категории" }}</b> — {{ item.count }} подписок</li>
-                        {% endfor %}
-                    {% else %}
-                        <li>Подписок пока нет</li>
-                    {% endif %}
-                </ul>
-            </div>
-            <div class="chart-container">
-                <h3>Диаграмма</h3>
-                <canvas id="categoryChart"></canvas>
-            </div>
+    <div class="stats">
+        <div class="stat-card purple">
+            <h3>Самая дорогая</h3>
+            <p>
+                {% if most_expensive %}
+                    {{ most_expensive.name }} — {{ most_expensive.price }} {{ most_expensive.currency }}
+                {% endif %}
+            </p>
+        </div>
+        <div class="stat-card blue">
+            <h3>Самая дешёвая</h3>
+            <p>
+                {% if cheapest %}
+                    {{ cheapest.name }} — {{ cheapest.price }} {{ cheapest.currency }}
+                {% endif %}
+            </p>
         </div>
     </div>
-
-    <div class="block">
-        <h2>Расходы по категориям</h2>
-        <div class="row">
-            <div style="min-width:250px">
-                <h3>Текстовая статистика</h3>
-                <ul>
-                    {% if spending_by_category %}
-                        {% for item in spending_by_category %}
-                        <li><b>{{ item.category__name|default:"Без категории" }}</b> — {{ item.total }} ₽</li>
-                        {% endfor %}
-                    {% else %}
-                        <li>Расходов пока нет</li>
-                    {% endif %}
-                </ul>
-            </div>
-            <div class="chart-container">
-                <h3>Диаграмма</h3>
-                <canvas id="spendingChart"></canvas>
-            </div>
+    <div class="grid">
+        <div class="card_large"><h2>Расходы по месяцам</h2><canvas id="monthChart"></canvas>
         </div>
-    </div>
-
-    <div class="block">
-        <h2>Расходы по месяца</h2>
-        <div class="row">
-            <div style="min-width:250px">
-                <h3>Текстовая статистика</h3>
-                <ul>
-                    {% for item in spending_by_month %}
-                    <li>{{ item.month }} — {{ item.total }} ₽</li>
-                    {% empty %}
-                    <li>Расходов пока нет</li>
-                    {% endfor %}
-                </ul>
-            </div>
-            <div class="chart-container">
-                <h3>Диаграмма</h3>
-                <canvas id="monthChart"></canvas>
-            </div>
+        <div class="card_small">
+            <h2>Подписки по категориям</h2>
+            <canvas id="categoryChart"></canvas>
         </div>
-    </div>
-
-    <div class="block">
-        <h2>Статусы подписок</h2>
-        <div class="row">
-            <div>
-                <ul>
-                    {% for item in status_stats %}
-                    <li>{{ item.status }} — {{ item.count }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-            <div class="chart-container">
-                <canvas id="statusChart"></canvas>
-            </div>
+        <div class="card_large">
+            <h2>Расходы по категориям</h2>
+            <canvas id="spendingChart"></canvas>
+        </div>
+        <div class="card_small">
+            <h2>Статусы подписок</h2>
+            <canvas id="statusChart"></canvas>
         </div>
     </div>
 </div>
-
 <script>
     window.categoryLabels = {{ category_labels|safe }};
     window.categoryCounts = {{ category_counts|safe }};

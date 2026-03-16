@@ -19,6 +19,7 @@ class EmailAccount(models.Model):
         max_length=50,
         choices=PROVIDERS
     )
+    last_checked_uid = models.BigIntegerField(default=0)
     password = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -45,11 +46,8 @@ class EmailSubscriptionCandidate(models.Model):
     is_processed = models.BooleanField(default=False)
 
 
-class Device(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="devices")
-    token = models.CharField(max_length=512, unique=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    last_seen = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return f"{self.user.username} - {self.token[:10]}..."
+class Device(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    token = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)

@@ -1,23 +1,47 @@
-<h2>Подтвердите подписку</h2>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Аналитика подписок</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/header.css' %}">
+</head>
+<body>
+    {#-------------------------HEADER-------------------------#}
+    <header>
+        <div class="block1">
+            <h2>BANANOSUBS</h2>
+            <div class="header-link">
+                <a href="{% url 'main:home' %}" class="button1 {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Главная</a>
+                <a href="{% url 'main:analytics' %}" class="button2 {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">Аналитика</a>
+                <a href="{% url 'main:forecast' %}" class="button3 {% if request.resolver_match.url_name == 'forecast' %}active{% endif %}">Прогноз</a>
+            </div>
+            {% if user.is_authenticated %}
+            <a href="{% url 'auth:profile' %}" class="registr">Профиль</a> {% else %}
+            <a href="{% url 'auth:login' %}" class="registr">Регистрация | Вход</a> {% endif %}
+        </div>
+    {#    <div class="line" style="border-bottom: solid 1px #e3e3e3;"></div>#}
+    </header>
 
-<p>Найдено письмо:</p>
 
-<p>
-Отправитель: {{ candidate.sender }}
-</p>
-
-<p>
-Тема: {{ candidate.subject }}
-</p>
-
-<form method="post">
-
-{% csrf_token %}
-
-{{ form.as_p }}
-
-<button type="submit">
-Сохранить подписку
-</button>
-
-</form>
+    <h2>Подтвердите подписку</h2>
+    <p><b>Отправитель:</b> {{ candidate.sender }}</p><p><b>Тема письма:</b> {{ candidate.subject }}</p>
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="field">
+                <label>{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <div style="color:red">
+                        {% for error in field.errors %}
+                        <p>{{ error }}</p>
+                        { % endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+        <button type="submit">Сохранить подписку</button>
+    </form>
+</body>
+</html>

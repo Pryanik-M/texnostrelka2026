@@ -1,34 +1,76 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Добавить подписку</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/header.css' %}">
+    <link rel="stylesheet" href="{% static 'css/add_subscription.css' %}">
 </head>
 <body>
-<h2>Добавить подписку</h2>
+{#-------------------------HEADER-------------------------#}
+<header>
+    <div class="block1">
+        <h2>BANANOSUBS</h2>
+        <div class="header-link">
+            <a href="{% url 'main:home' %}" class="button1 {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Главная</a>
+            <a href="{% url 'main:analytics' %}" class="button2 {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">Аналитика</a>
+            <a href="{% url 'main:forecast' %}" class="button3 {% if request.resolver_match.url_name == 'forecast' %}active{% endif %}">Прогноз</a>
+        </div>
+        {% if user.is_authenticated %}
+        <a href="{% url 'auth:profile' %}" class="registr">Профиль</a> {% else %}
+        <a href="{% url 'auth:login' %}" class="registr">Регистрация | Вход</a> {% endif %}
+    </div>
+{#    <div class="line" style="border-bottom: solid 1px #e3e3e3;"></div>#}
+</header>
 
-<h2>{% if edit_sub %}Редактировать{% else %}Добавить{% endif %} подписку</h2>
+<div class="login-wrapper">
+    <div class="login-card">
 
-<form method="post">
-    {% csrf_token %}
+        <h1>
+            {% if edit_sub %}
+                Редактировать подписку
+            {% else %}
+                Добавить подписку
+            {% endif %}
+        </h1>
 
-    {% if edit_sub %}
-        <input type="hidden" name="old_id" value="{{ edit_sub.id }}">
-    {% endif %}
+        <form method="post">
+            {% csrf_token %}
 
-    {% for field in form %}
-    <div>
-        <label>{{ field.label }}</label><br>
-        {{ field }}
-        {% if field.errors %}
-            <p style="color:red">{{ field.errors }}</p>
-        {% endif %}
-    </div><br>
-    {% endfor %}
+            {% if edit_sub %}
+                <input type="hidden" name="old_id" value="{{ edit_sub.id }}">
+            {% endif %}
 
-    <button type="submit">
-        {% if edit_sub %}Сохранить изменения{% else %}Добавить{% endif %}
-    </button>
-</form>
+            {% for field in form %}
+                <div class="form-group">
+
+                    {{ field }}
+
+                    {% if field.errors %}
+                        <div class="error-list">
+                            {% for error in field.errors %}
+                                <p class="error-text">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                </div>
+            {% endfor %}
+
+            <div class="buttons">
+                <button type="submit" class="btn-login">
+                    {% if edit_sub %}
+                        Сохранить
+                    {% else %}
+                        Добавить подписку
+                    {% endif %}
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
 </body>
 </html>

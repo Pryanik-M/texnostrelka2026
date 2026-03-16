@@ -1,0 +1,224 @@
+@font-face {
+    font-family: 'Montserrat-Bold';
+    src: url('../fonts/Montserrat-Bold.eot');
+    src: url('../fonts/Montserrat-Bold.eot') format('embedded-opentype'),
+        url('../fonts/Montserrat-Bold.woff2') format('woff2'),
+        url('../fonts/Montserrat-Bold.woff') format('woff'),
+        url('../fonts/Montserrat-Bold.ttf') format('truetype'),
+        url('../fonts/Montserrat-Bold.svg') format('svg');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Montserrat-Black';
+    src: url('../fonts/Montserrat-Black.eot');
+    src: url('../fonts/Montserrat-Black.eot') format('embedded-opentype'),
+        url('../fonts/Montserrat-Black.woff2') format('woff2'),
+        url('../fonts/Montserrat-Black.woff') format('woff'),
+        url('../fonts/Montserrat-Black.ttf') format('truetype'),
+        url('../fonts/Montserrat-Black.svg') format('svg');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Montserrat-SemiBold';
+    src: url('../fonts/Montserrat-SemiBold.eot');
+    src: url('../fonts/Montserrat-SemiBold.eot') format('embedded-opentype'),
+        url('../fonts/Montserrat-SemiBold.woff2') format('woff2'),
+        url('../fonts/Montserrat-SemiBold.woff') format('woff'),
+        url('../fonts/Montserrat-SemiBold.ttf') format('truetype'),
+        url('../fonts/Montserrat-SemiBold.svg') format('svg');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Montserrat-Medium';
+    src: url('../fonts/Montserrat-Medium.eot');
+    src: url('../fonts/Montserrat-Medium.eot') format('embedded-opentype'),
+        url('../fonts/Montserrat-Medium.woff2') format('woff2'),
+        url('../fonts/Montserrat-Medium.woff') format('woff'),
+        url('../fonts/Montserrat-Medium.ttf') format('truetype'),
+        url('../fonts/Montserrat-Medium.svg') format('svg');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Montserrat-Regular';
+    src: url('../fonts/Montserrat-Regular.eot');
+    src: url('../fonts/Montserrat-Regular.eot') format('embedded-opentype'),
+        url('../fonts/Montserrat-Regular.woff2') format('woff2'),
+        url('../fonts/Montserrat-Regular.woff') format('woff'),
+        url('../fonts/Montserrat-Regular.ttf') format('truetype'),
+        url('../fonts/Montserrat-Regular.svg') format('svg');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Montserrat-Light';
+    src: url('../fonts/Montserrat-Light.eot');
+    src: url('../fonts/Montserrat-Light.eot') format('embedded-opentype'),
+        url('../fonts/Montserrat-Light.woff2') format('woff2'),
+        url('../fonts/Montserrat-Light.woff') format('woff'),
+        url('../fonts/Montserrat-Light.ttf') format('truetype'),
+        url('../fonts/Montserrat-Light.svg') format('svg');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Benzin-Medium';
+    src: url('../fonts/Benzin-Medium.eot');
+    src: url('../fonts/Benzin-Medium.eot') format('embedded-opentype'),
+        url('../fonts/Benzin-Medium.woff2') format('woff2'),
+        url('../fonts/Benzin-Medium.woff') format('woff'),
+        url('../fonts/Benzin-Medium.ttf') format('truetype'),
+        url('../fonts/Benzin-Medium.svg') format('svg');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Benzin-Regular';
+    src: url('../fonts/Benzin-Regular.eot');
+    src: url('../fonts/Benzin-Regular.eot') format('embedded-opentype'),
+        url('../fonts/Benzin-Regular.woff2') format('woff2'),
+        url('../fonts/Benzin-Regular.woff') format('woff'),
+        url('../fonts/Benzin-Regular.ttf') format('truetype'),
+        url('../fonts/Benzin-Regular.svg') format('svg');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Benzin-Bold';
+    src: url('../fonts/Benzin-Bold.eot');
+    src: url('../fonts/Benzin-Bold.eot') format('embedded-opentype'),
+        url('../fonts/Benzin-Bold.woff2') format('woff2'),
+        url('../fonts/Benzin-Bold.woff') format('woff'),
+        url('../fonts/Benzin-Bold.ttf') format('truetype'),
+        url('../fonts/Benzin-Bold.svg') format('svg');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Benzin-SemiBold';
+    src: url('../fonts/Benzin-Semibold.eot');
+    src: url('../fonts/Benzin-Semibold.eot') format('embedded-opentype'),
+        url('../fonts/Benzin-Semibold.woff2') format('woff2'),
+        url('../fonts/Benzin-Semibold.woff') format('woff'),
+        url('../fonts/Benzin-Semibold.ttf') format('truetype'),
+        url('../fonts/Benzin-Semibold.svg') format('svg');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    /*padding:0 3%;*/
+    overflow-x:hidden;
+    background-image:url("../img/fon1.png");
+    background-repeat:repeat;
+    background-size:800px;
+}
+
+.error {
+    margin-bottom: 15px;
+    font-family: Montserrat-Light;
+}
+
+/* LOGIN BLOCK */
+
+.login-wrapper{
+    width:100%;
+    height:calc(100vh - 70px);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.login-card{
+    width:650px;
+    padding:60px;
+    background:#f1f1f1;
+    border-radius:30px;
+    text-align:center;
+}
+
+.login-card h1{
+    font-size:36px;
+    margin-bottom:40px;
+    font-family: Benzin-Medium;
+}
+
+
+/* INPUTS */
+
+input{
+    width:100%;
+    padding:18px;
+    margin-bottom:20px;
+    border-radius:15px;
+    border:none;
+    background:#e6e6e6;
+    font-size:16px;
+    font-family: Montserrat-Regular;
+}
+
+.forgot{
+    display:block;
+    text-align:left;
+    color:#ff2c6b;
+    text-decoration:none;
+    margin-bottom:30px;
+    font-family: Montserrat-Regular;
+}
+
+
+/* BUTTONS */
+
+.buttons{
+    display:flex;
+    justify-content:center;
+    gap:20px;
+}
+
+.btn-login{
+    padding:10px 32px;
+    border-radius:10px;
+    background:#ff2c6b;
+    color:white;
+    border:none;
+    font-size:15px;
+    font-family: Montserrat-Regular;
+}
+
+.btn-register{
+    padding:10px 32px;
+    border-radius:10px;
+    border:2px solid #ff2c6b;
+    background:white;
+    font-size:15px;
+    font-family: Montserrat-Regular;
+}

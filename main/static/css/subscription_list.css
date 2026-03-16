@@ -1,0 +1,299 @@
+@font-face {
+    font-family: 'Montserrat-Bold';
+    src: url('../../../texnostrelka/static/fonts/Montserrat-Bold.eot');
+    src: url('../../../texnostrelka/static/fonts/Montserrat-Bold.eot') format('embedded-opentype'),
+        url('../../../texnostrelka/static/fonts/Montserrat-Bold.woff2') format('woff2'),
+        url('../../../texnostrelka/static/fonts/Montserrat-Bold.woff') format('woff'),
+        url('../../../texnostrelka/static/fonts/Montserrat-Bold.ttf') format('truetype'),
+        url('../../../texnostrelka/static/fonts/Montserrat-Bold.svg') format('svg');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Montserrat-Black';
+    src: url('../../../texnostrelka/static/fonts/Montserrat-Black.eot');
+    src: url('../../../texnostrelka/static/fonts/Montserrat-Black.eot') format('embedded-opentype'),
+        url('../../../texnostrelka/static/fonts/Montserrat-Black.woff2') format('woff2'),
+        url('../../../texnostrelka/static/fonts/Montserrat-Black.woff') format('woff'),
+        url('../../../texnostrelka/static/fonts/Montserrat-Black.ttf') format('truetype'),
+        url('../../../texnostrelka/static/fonts/Montserrat-Black.svg') format('svg');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Montserrat-SemiBold';
+    src: url('../../../texnostrelka/static/fonts/Montserrat-SemiBold.eot');
+    src: url('../../../texnostrelka/static/fonts/Montserrat-SemiBold.eot') format('embedded-opentype'),
+        url('../../../texnostrelka/static/fonts/Montserrat-SemiBold.woff2') format('woff2'),
+        url('../../../texnostrelka/static/fonts/Montserrat-SemiBold.woff') format('woff'),
+        url('../../../texnostrelka/static/fonts/Montserrat-SemiBold.ttf') format('truetype'),
+        url('../../../texnostrelka/static/fonts/Montserrat-SemiBold.svg') format('svg');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Montserrat-Medium';
+    src: url('../../../texnostrelka/static/fonts/Montserrat-Medium.eot');
+    src: url('../../../texnostrelka/static/fonts/Montserrat-Medium.eot') format('embedded-opentype'),
+        url('../../../texnostrelka/static/fonts/Montserrat-Medium.woff2') format('woff2'),
+        url('../../../texnostrelka/static/fonts/Montserrat-Medium.woff') format('woff'),
+        url('../../../texnostrelka/static/fonts/Montserrat-Medium.ttf') format('truetype'),
+        url('../../../texnostrelka/static/fonts/Montserrat-Medium.svg') format('svg');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Montserrat-Regular';
+    src: url('../../../texnostrelka/static/fonts/Montserrat-Regular.eot');
+    src: url('../../../texnostrelka/static/fonts/Montserrat-Regular.eot') format('embedded-opentype'),
+        url('../../../texnostrelka/static/fonts/Montserrat-Regular.woff2') format('woff2'),
+        url('../../../texnostrelka/static/fonts/Montserrat-Regular.woff') format('woff'),
+        url('../../../texnostrelka/static/fonts/Montserrat-Regular.ttf') format('truetype'),
+        url('../../../texnostrelka/static/fonts/Montserrat-Regular.svg') format('svg');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Montserrat-Light';
+    src: url('../../../texnostrelka/static/fonts/Montserrat-Light.eot');
+    src: url('../../../texnostrelka/static/fonts/Montserrat-Light.eot') format('embedded-opentype'),
+        url('../../../texnostrelka/static/fonts/Montserrat-Light.woff2') format('woff2'),
+        url('../../../texnostrelka/static/fonts/Montserrat-Light.woff') format('woff'),
+        url('../../../texnostrelka/static/fonts/Montserrat-Light.ttf') format('truetype'),
+        url('../../../texnostrelka/static/fonts/Montserrat-Light.svg') format('svg');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Benzin-Medium';
+    src: url('../../../texnostrelka/static/fonts/Benzin-Medium.eot');
+    src: url('../../../texnostrelka/static/fonts/Benzin-Medium.eot') format('embedded-opentype'),
+        url('../../../texnostrelka/static/fonts/Benzin-Medium.woff2') format('woff2'),
+        url('../../../texnostrelka/static/fonts/Benzin-Medium.woff') format('woff'),
+        url('../../../texnostrelka/static/fonts/Benzin-Medium.ttf') format('truetype'),
+        url('../../../texnostrelka/static/fonts/Benzin-Medium.svg') format('svg');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Benzin-Regular';
+    src: url('../../../texnostrelka/static/fonts/Benzin-Regular.eot');
+    src: url('../../../texnostrelka/static/fonts/Benzin-Regular.eot') format('embedded-opentype'),
+        url('../../../texnostrelka/static/fonts/Benzin-Regular.woff2') format('woff2'),
+        url('../../../texnostrelka/static/fonts/Benzin-Regular.woff') format('woff'),
+        url('../../../texnostrelka/static/fonts/Benzin-Regular.ttf') format('truetype'),
+        url('../../../texnostrelka/static/fonts/Benzin-Regular.svg') format('svg');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Benzin-Bold';
+    src: url('../../../texnostrelka/static/fonts/Benzin-Bold.eot');
+    src: url('../../../texnostrelka/static/fonts/Benzin-Bold.eot') format('embedded-opentype'),
+        url('../../../texnostrelka/static/fonts/Benzin-Bold.woff2') format('woff2'),
+        url('../../../texnostrelka/static/fonts/Benzin-Bold.woff') format('woff'),
+        url('../../../texnostrelka/static/fonts/Benzin-Bold.ttf') format('truetype'),
+        url('../../../texnostrelka/static/fonts/Benzin-Bold.svg') format('svg');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Benzin-SemiBold';
+    src: url('../../../texnostrelka/static/fonts/Benzin-Semibold.eot');
+    src: url('../../../texnostrelka/static/fonts/Benzin-Semibold.eot') format('embedded-opentype'),
+        url('../../../texnostrelka/static/fonts/Benzin-Semibold.woff2') format('woff2'),
+        url('../../../texnostrelka/static/fonts/Benzin-Semibold.woff') format('woff'),
+        url('../../../texnostrelka/static/fonts/Benzin-Semibold.ttf') format('truetype'),
+        url('../../../texnostrelka/static/fonts/Benzin-Semibold.svg') format('svg');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Segoe UI, Arial;
+}
+
+body{
+    background-image:url("../img/fon1.png");
+    background-repeat:repeat;
+    background-size:800px;
+    font-family: Montserrat-Regular;
+}
+
+
+.login-wrapper{
+    width:100%;
+    min-height:calc(100vh - 70px);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:80px 0;
+}
+
+
+.login-card{
+    width:700px;
+    padding:60px;
+    background:#f1f1f1;
+    border-radius:30px;
+    min-height:500px;
+    display:flex;
+    flex-direction:column;
+}
+
+
+.login-card h1{
+    font-size:36px;
+    margin-bottom:30px;
+    font-family:Benzin-Medium;
+    text-align:center;
+    letter-spacing:1px;
+}
+
+
+.search-form input{
+    width:100%;
+    padding:18px;
+    border-radius:15px;
+    border:none;
+    background:#e6e6e6;
+    margin-bottom:20px;
+}
+
+.subscriptions{
+    flex-grow:1;
+}
+
+.btn-add{
+    display:inline-block;
+    padding:10px 32px;
+    border-radius:10px;
+    background:#ff2c6b;
+    color:white;
+    text-decoration:none;
+    font-family:Montserrat-Regular;
+    margin-bottom:30px;
+    width:auto;
+    align-self:flex-start;
+}
+
+.subscription-card{
+    background:white;
+    padding:20px;
+    border-radius:15px;
+    margin-bottom:20px;
+}
+
+.sub-main{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:10px;
+}
+
+
+.sub-name{
+    font-size:18px;
+    font-family:Montserrat-SemiBold;
+}
+
+
+.sub-price{
+    font-family:Montserrat-SemiBold;
+    font-size:16px;
+}
+
+
+.subscription-actions{
+    display:flex;
+    gap:10px;
+    margin:10px 0;
+}
+
+.btn-open,
+.btn-edit,
+.btn-delete,
+.btn-add{
+    font-family:Montserrat-Regular;
+}
+
+.btn-open{
+    color:#ff2c6b;
+    text-decoration:none;
+}
+
+
+.btn-edit{
+    color:#9C3FFF;
+    text-decoration:none;
+}
+
+
+.btn-delete{
+    background:#ff2c6b;
+    border:none;
+    color:white;
+    padding:5px 12px;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+
+.next-payment{
+    font-size:14px;
+    color:#666;
+    font-family:Montserrat-Regular;
+}
+
+.search-box{
+    display:flex;
+    gap:10px;
+    margin-bottom:25px;
+}
+
+.search-box input{
+    flex:1;
+    padding:18px;
+    border-radius:15px;
+    border:none;
+    background:#e6e6e6;
+    font-family:Montserrat-Regular;
+}
+
+.search-btn{
+    width:60px;
+    border:none;
+    border-radius:15px;
+    background:#ff2c6b;
+    color:white;
+    font-size:18px;
+    cursor:pointer;
+}
+
+.email-subject{
+    font-size:14px;
+    color:#666;
+    margin-bottom:8px;
+    font-family: Montserrat-Regular;
+}

@@ -1,25 +1,12 @@
-﻿# push_service.py
-import firebase_admin
-from firebase_admin import messaging, credentials
-from django.conf import settings
+# push_service.py
+from firebase_admin import messaging
 from .models import Device
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-def _ensure_firebase():
-    if firebase_admin._apps:
-        return
-    cred_path = getattr(settings, "FIREBASE_SERVICE_ACCOUNT", None)
-    if not cred_path:
-        raise RuntimeError("FIREBASE_SERVICE_ACCOUNT is not set")
-    cred = credentials.Certificate(cred_path)
-    firebase_admin.initialize_app(cred)
-
-
 def send_push(token, title, body, extra_data=None):
-    _ensure_firebase()
     message = messaging.Message(
         notification=messaging.Notification(title=title, body=body),
         data=extra_data or {},
