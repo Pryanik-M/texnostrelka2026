@@ -56,8 +56,7 @@
     src: url('../../../texnostrelka/static/fonts/Benzin-Bold.eot') format('embedded-opentype'),
         url('../../../texnostrelka/static/fonts/Benzin-Bold.woff2') format('woff2'),
         url('../../../texnostrelka/static/fonts/Benzin-Bold.woff') format('woff'),
-        url('../../../texnostrelka/static/fonts/Benzin-Bold.ttf') format('truetype'),
-        url('../../../texnostrelka/static/fonts/Benzin-Bold.svg') format('svg');
+        url('../../../texnostrelka/static/fonts/Benzin-Bold.ttf') format('truetype');
     font-weight: bold;
     font-style: normal;
     font-display: swap;

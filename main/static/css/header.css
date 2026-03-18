@@ -82,8 +82,7 @@
     src: url('../fonts/Benzin-Medium.eot') format('embedded-opentype'),
         url('../fonts/Benzin-Medium.woff2') format('woff2'),
         url('../fonts/Benzin-Medium.woff') format('woff'),
-        url('../fonts/Benzin-Medium.ttf') format('truetype'),
-        url('../fonts/Benzin-Medium.svg') format('svg');
+        url('../fonts/Benzin-Medium.ttf') format('truetype');
     font-weight: 500;
     font-style: normal;
     font-display: swap;
@@ -95,8 +94,7 @@
     src: url('../fonts/Benzin-Regular.eot') format('embedded-opentype'),
         url('../fonts/Benzin-Regular.woff2') format('woff2'),
         url('../fonts/Benzin-Regular.woff') format('woff'),
-        url('../fonts/Benzin-Regular.ttf') format('truetype'),
-        url('../fonts/Benzin-Regular.svg') format('svg');
+        url('../fonts/Benzin-Regular.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
@@ -108,8 +106,7 @@
     src: url('../fonts/Benzin-Bold.eot') format('embedded-opentype'),
         url('../fonts/Benzin-Bold.woff2') format('woff2'),
         url('../fonts/Benzin-Bold.woff') format('woff'),
-        url('../fonts/Benzin-Bold.ttf') format('truetype'),
-        url('../fonts/Benzin-Bold.svg') format('svg');
+        url('../fonts/Benzin-Bold.ttf') format('truetype');
     font-weight: bold;
     font-style: normal;
     font-display: swap;
@@ -121,8 +118,7 @@
     src: url('../fonts/Benzin-Semibold.eot') format('embedded-opentype'),
         url('../fonts/Benzin-Semibold.woff2') format('woff2'),
         url('../fonts/Benzin-Semibold.woff') format('woff'),
-        url('../fonts/Benzin-Semibold.ttf') format('truetype'),
-        url('../fonts/Benzin-Semibold.svg') format('svg');
+        url('../fonts/Benzin-Semibold.ttf') format('truetype');
     font-weight: 600;
     font-style: normal;
     font-display: swap;

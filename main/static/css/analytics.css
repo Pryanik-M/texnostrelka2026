@@ -82,8 +82,7 @@
     src: url('../../../texnostrelka/static/fonts/Benzin-Medium.eot') format('embedded-opentype'),
         url('../../../texnostrelka/static/fonts/Benzin-Medium.woff2') format('woff2'),
         url('../../../texnostrelka/static/fonts/Benzin-Medium.woff') format('woff'),
-        url('../../../texnostrelka/static/fonts/Benzin-Medium.ttf') format('truetype'),
-        url('../../../texnostrelka/static/fonts/Benzin-Medium.svg') format('svg');
+        url('../../../texnostrelka/static/fonts/Benzin-Medium.ttf') format('truetype');
     font-weight: 500;
     font-style: normal;
     font-display: swap;
@@ -95,8 +94,7 @@
     src: url('../../../texnostrelka/static/fonts/Benzin-Regular.eot') format('embedded-opentype'),
         url('../../../texnostrelka/static/fonts/Benzin-Regular.woff2') format('woff2'),
         url('../../../texnostrelka/static/fonts/Benzin-Regular.woff') format('woff'),
-        url('../../../texnostrelka/static/fonts/Benzin-Regular.ttf') format('truetype'),
-        url('../../../texnostrelka/static/fonts/Benzin-Regular.svg') format('svg');
+        url('../../../texnostrelka/static/fonts/Benzin-Regular.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
@@ -108,8 +106,7 @@
     src: url('../../../texnostrelka/static/fonts/Benzin-Bold.eot') format('embedded-opentype'),
         url('../../../texnostrelka/static/fonts/Benzin-Bold.woff2') format('woff2'),
         url('../../../texnostrelka/static/fonts/Benzin-Bold.woff') format('woff'),
-        url('../../../texnostrelka/static/fonts/Benzin-Bold.ttf') format('truetype'),
-        url('../../../texnostrelka/static/fonts/Benzin-Bold.svg') format('svg');
+        url('../../../texnostrelka/static/fonts/Benzin-Bold.ttf') format('truetype');
     font-weight: bold;
     font-style: normal;
     font-display: swap;
@@ -121,8 +118,7 @@
     src: url('../../../texnostrelka/static/fonts/Benzin-Semibold.eot') format('embedded-opentype'),
         url('../../../texnostrelka/static/fonts/Benzin-Semibold.woff2') format('woff2'),
         url('../../../texnostrelka/static/fonts/Benzin-Semibold.woff') format('woff'),
-        url('../../../texnostrelka/static/fonts/Benzin-Semibold.ttf') format('truetype'),
-        url('../../../texnostrelka/static/fonts/Benzin-Semibold.svg') format('svg');
+        url('../../../texnostrelka/static/fonts/Benzin-Semibold.ttf') format('truetype');
     font-weight: 600;
     font-style: normal;
     font-display: swap;
