@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const li = document.createElement("li");
                     li.innerHTML = `
                         <span class="payment-name" title="${item.name}">${item.name}</span>
-                        <span class="payment-price">${item.price} $"руб."</span>
+                        <span class="payment-price">${item.price} руб.</span>
                     `;
                     list.appendChild(li);
                 });
