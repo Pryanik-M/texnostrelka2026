@@ -1,5 +1,7 @@
 📌 texnostrelka2026 — Монитор подписок<br>
 
+С нашим сервисом вы можете ознакомиться по ссылке https://bananosubs.ru
+
 🚀 О проекте<br>
 
 texnostrelka2026 — это кроссплатформенное решение для управления подписками пользователя.
@@ -63,6 +65,7 @@ REST API<br>
 
 Backend: http://127.0.0.1:8000<br>
 Admin: http://127.0.0.1:8000/admin<br>
+
 📁 Структура проекта<br>
 ```bash
 texnostrelka2026/
@@ -77,4 +80,4 @@ texnostrelka2026/
 
 Репозиторий: ```git clone https://github.com/Pryanik-M/texnostrelka2026.git```
 
-👨‍💻 Автор: Команда ""
+👨‍💻 Создатели: Команда ""
