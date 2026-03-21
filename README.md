@@ -78,6 +78,6 @@ texnostrelka2026/
 └── README.md
 ```
 
-Репозиторий: ```git clone https://github.com/Pryanik-M/texnostrelka2026.git```
+Репозиторий: https://github.com/Pryanik-M/texnostrelka2026.git
 
 👨‍💻 Создатели: Команда ""
