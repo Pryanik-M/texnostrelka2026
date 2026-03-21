@@ -20,7 +20,7 @@ texnostrelka2026 — это кроссплатформенное решение 
 📱 Mobile (React Native / Expo)<br>
 ⚙️ Основной функционал<br>
 <br>
-В соответствии с ТЗ реализовано:
+В соответствии с ТЗ реализовано:<br>
 ✅ Обязательный функционал
 Регистрация и авторизация пользователей
 Добавление / редактирование / удаление подписок
@@ -54,88 +54,24 @@ REST API<br>
 📦 Установка и запуск
 
 Полная инструкция:<br>
+```bash https://ablaze-bench-5d2.notion.site/texnostrelka2026-bc441092deca4a7fb40ee9216dabd174?source=copy_link ```
 
-💻 Быстрый старт (Windows)<br>
-1. Установка зависимостей
-pip install -r requirements.txt
-2. Создать .env
-SECRET_KEY=change-me
-DEBUG=True
+После запуска:<br>
 
-POSTGRES_DB=texnostrelka
-POSTGRES_USER=user
-POSTGRES_PASSWORD=password
+Backend: http://127.0.0.1:8000<br>
+Admin: http://127.0.0.1:8000/admin<br>
+📁 Структура проекта<br>
+```bash
+texnostrelka2026/<br>
+│<br>
+├── backend/<br>
+├── mobile/<br>
+├── web/<br>
+├── .env<br>
+├── requirements.txt<br>
+└── README.md<br>
+```
 
-REDIS_URL=redis://localhost:6379/0
-3. Миграции
-python manage.py migrate
-4. Создать суперпользователя
-python manage.py createsuperuser
-5. Запуск сервера
-python manage.py runserver
-⚡ Celery (обязательно)
-celery -A <project_name> worker -l info --pool=solo
-celery -A <project_name> beat -l info
-🔥 Firebase настройка
-Перейти в Firebase Console
-Создать проект
-Скачать firebase_key.json
-Поместить в корень проекта
-📱 Mobile (Expo)
-cd mobile
-npm install
-npx expo run:android
-🍏 iOS (только macOS)
-npx expo run:ios
-🧪 Проверка работы
-
-После запуска:
-
-Backend: http://127.0.0.1:8000
-Admin: http://127.0.0.1:8000/admin
-📁 Структура проекта
-texnostrelka2026/
-│
-├── backend/
-├── mobile/
-├── web/
-├── .env
-├── requirements.txt
-└── README.md
-🎥 Видеопрезентация
-
-📌 Важно:
-Согласно ТЗ, если функционал не показан в видео — он не оценивается
-
-Рекомендуется:
-
-показать ВСЕ функции
-озвучить действия
-записывать без шумов
-📌 Важные требования (ТЗ)
-
-Чтобы проект был засчитан, обязательно:
-
-✅ Есть backend
-✅ Есть web + mobile
-✅ Есть инструкция
-✅ Есть видео
-✅ Есть доступ к материалам
-
-Иначе работа не оценивается
-
-🏆 Критерии оценки
-
-Ключевые моменты:
-
-Архитектура (единый API)
-Полный функционал
-Аналитика
-Уведомления
-Синхронизация
-Прогнозирование
-📎 Репозиторий
 git clone https://github.com/Pryanik-M/texnostrelka2026.git
-👨‍💻 Автор
-
-Разработано в рамках хакатона Технострелка 2026
+👨‍💻 Автор:<br>
+Команда ""
