@@ -65,18 +65,16 @@ Backend: http://127.0.0.1:8000<br>
 Admin: http://127.0.0.1:8000/admin<br>
 📁 Структура проекта<br>
 ```bash
-texnostrelka2026/<br>
-│<br>
-├── backend/<br>
-├── mobile/<br>
-├── web/<br>
-├── .env<br>
-├── requirements.txt<br>
-└── README.md<br>
+texnostrelka2026/
+│
+├── backend/
+├── mobile/
+├── web/
+├── .env
+├── requirements.txt
+└── README.md
 ```
 
-git clone https://github.com/Pryanik-M/texnostrelka2026.git
+Репозиторий: ```git clone https://github.com/Pryanik-M/texnostrelka2026.git```
 
-👨‍💻 Автор:<br>
-
-Команда ""
+👨‍💻 Автор: Команда ""
