@@ -224,7 +224,7 @@ def add_subscription(request):
     if request.method == "POST":
         if edit_sub:
             form = SubscriptionForm(request.POST, instance=edit_sub)
-        if initial_data:
+        elif initial_data:
             form = SubscriptionForm(request.POST, initial=initial_data)
         else:
             form = SubscriptionForm(request.POST)
