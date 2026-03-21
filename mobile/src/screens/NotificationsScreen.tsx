@@ -1,9 +1,8 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import { Subscription } from '../types';
-import { CATEGORY_LABELS } from '../constants/categories';
 import { ScreenBackground } from '../components/ScreenBackground';
 import { Theme } from '../theme';
 import { CatSticker } from '../components/CatSticker';
@@ -52,7 +51,7 @@ export const NotificationsScreen: React.FC = () => {
         </Text>
         <Text style={styles.meta}>
           Дата списания: {formatDate(sub.nextChargeDate)} • Категория:{' '}
-          {CATEGORY_LABELS[sub.category] ?? sub.category}
+          {sub.categoryName ?? 'Без категории'}
         </Text>
       </View>
     );
@@ -99,6 +98,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
     color: Theme.colors.textPrimary,
+    fontFamily: 'Benzin-Medium',
   },
   headerSubtitle: {
     marginTop: 4,

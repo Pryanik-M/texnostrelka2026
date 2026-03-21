@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+﻿import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -71,8 +71,8 @@ export const CandidatesScreen: React.FC = () => {
       </Text>
 
       <View style={styles.actionRow}>
-        <TouchableOpacity style={styles.acceptButton} onPress={() => handleAccept(item)}>
-          <Text style={styles.acceptButtonText}>Проверить и добавить</Text>
+        <TouchableOpacity style={styles.reviewButton} onPress={() => handleAccept(item)}>
+          <Text style={styles.reviewButtonText}>Проверить и добавить</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.ignoreButton} onPress={() => handleIgnore(item.id)}>
           <Text style={styles.ignoreButtonText}>Игнорировать</Text>
@@ -127,6 +127,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
     color: Theme.colors.textPrimary,
+    fontFamily: 'Benzin-Medium',
   },
   subtitle: {
     marginTop: 4,
@@ -178,16 +179,18 @@ const styles = StyleSheet.create({
   actionRow: {
     marginTop: 12,
   },
-  acceptButton: {
+  reviewButton: {
+    marginTop: 4,
     borderRadius: Theme.radii.sm,
-    backgroundColor: Theme.colors.accentStrong,
-    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: Theme.colors.accentStrong,
+    paddingVertical: 9,
     alignItems: 'center',
   },
-  acceptButtonText: {
-    color: Theme.colors.background,
+  reviewButtonText: {
+    color: Theme.colors.accentStrong,
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   ignoreButton: {
     marginTop: 8,

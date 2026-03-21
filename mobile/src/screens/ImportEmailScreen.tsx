@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,6 @@ import { useNavigation } from '@react-navigation/native';
 
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import { Subscription } from '../types';
-import { CATEGORY_LABELS } from '../constants/categories';
 import { ScreenBackground } from '../components/ScreenBackground';
 import { Theme } from '../theme';
 
@@ -57,7 +56,8 @@ export const ImportEmailScreen: React.FC = () => {
     <ScreenBackground>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 80}
       >
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <Text style={styles.title}>Импорт из письма банка</Text>
@@ -95,7 +95,7 @@ export const ImportEmailScreen: React.FC = () => {
               <View style={styles.previewCard}>
                 <Text style={styles.previewTitle}>{preview.name}</Text>
                 <Text style={styles.previewSubtitle}>
-                  {CATEGORY_LABELS[preview.category] ?? preview.category}
+                  {preview.categoryName ?? 'Без категории'}
                 </Text>
 
                 <View style={styles.previewRow}>
@@ -123,7 +123,7 @@ export const ImportEmailScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 },
-  title: { fontSize: 22, fontWeight: '700', color: Theme.colors.textPrimary },
+  title: { fontSize: 22, fontWeight: '700', color: Theme.colors.textPrimary, fontFamily: 'Benzin-Medium' },
   subtitle: { marginTop: 4, color: Theme.colors.textSecondary, fontSize: 13, marginBottom: 16 },
   label: { marginTop: 12, marginBottom: 4, fontSize: 13, color: Theme.colors.textSecondary },
   textArea: {
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     ...Theme.shadow.glow,
   },
-  primaryButtonText: { color: Theme.colors.background, fontSize: 16, fontWeight: '700' },
+  primaryButtonText: { color: Theme.colors.textOnAccent, fontSize: 16, fontWeight: '700' },
   previewCard: {
     marginTop: 8,
     borderRadius: Theme.radii.lg,

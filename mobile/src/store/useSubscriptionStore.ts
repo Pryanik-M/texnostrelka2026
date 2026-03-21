@@ -11,6 +11,7 @@ import {
   getCategories,
   getForecast,
   getSubscriptions,
+  getServerNow,
   updateSubscription,
 } from '../api/client';
 import {
@@ -18,7 +19,6 @@ import {
   Forecast,
   Recommendation,
   Subscription,
-  SubscriptionCategory,
 } from '../types';
 
 interface SubscriptionState {
@@ -29,7 +29,12 @@ interface SubscriptionState {
   isLoading: boolean;
   error: string | null;
 
-  fetchSubscriptions: () => Promise<void>;
+  fetchSubscriptions: (params?: {
+    search?: string;
+    status?: string;
+    order?: string;
+    category?: number;
+  }) => Promise<void>;
   add: (sub: Partial<Subscription>) => Promise<Subscription | null>;
   update: (id: string, data: Partial<Subscription>) => Promise<Subscription | null>;
   remove: (id: string) => Promise<boolean>;
@@ -37,24 +42,53 @@ interface SubscriptionState {
 
   loadAnalytics: () => Promise<void>;
   loadForecast: () => Promise<void>;
-  getCategoryRecommendations: (category: SubscriptionCategory) => Promise<Recommendation[]>;
+  getCategoryRecommendations: (categoryId: number) => Promise<Recommendation[]>;
   ensureCategories: () => Promise<void>;
   clearError: () => void;
 }
 
-const detectCategoryByName = (name: string): SubscriptionCategory => {
-  const lower = name.toLowerCase();
-  if (lower.includes('music') || lower.includes('муз')) return 'music';
-  if (lower.includes('video') || lower.includes('фильм') || lower.includes('кино') || lower.includes('media')) {
-    return 'streaming';
+const parseLocalDate = (iso: string) => {
+  const [year, month, day] = iso.split('-').map((part) => Number(part));
+  if (!year || !month || !day) return new Date();
+  return new Date(year, month - 1, day);
+};
+
+const formatLocalDate = (date: Date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
+const addMonths = (date: Date, months: number) => {
+  const year = date.getFullYear();
+  const month = date.getMonth() + months;
+  const day = date.getDate();
+  const firstOfTarget = new Date(year, month, 1);
+  const lastDay = new Date(firstOfTarget.getFullYear(), firstOfTarget.getMonth() + 1, 0).getDate();
+  return new Date(firstOfTarget.getFullYear(), firstOfTarget.getMonth(), Math.min(day, lastDay));
+};
+
+const addPeriod = (date: Date, period: Subscription['billingPeriod'], interval = 1) => {
+  const safeInterval = Math.max(Number(interval || 1), 1);
+  if (period === 'day') return new Date(date.getFullYear(), date.getMonth(), date.getDate() + safeInterval);
+  if (period === 'week') return new Date(date.getFullYear(), date.getMonth(), date.getDate() + 7 * safeInterval);
+  if (period === 'year') return addMonths(date, 12 * safeInterval);
+  return addMonths(date, safeInterval);
+};
+
+const getNextPaymentDate = (
+  rawNextPayment: string,
+  period: Subscription['billingPeriod'],
+  interval: number | undefined,
+  now: Date,
+) => {
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  let nextDate = parseLocalDate(rawNextPayment);
+  while (nextDate < today) {
+    nextDate = addPeriod(nextDate, period, interval);
   }
-  if (lower.includes('cloud') || lower.includes('облак') || lower.includes('hosting') || lower.includes('host')) {
-    return 'cloud';
-  }
-  if (lower.includes('delivery') || lower.includes('достав') || lower.includes('еда') || lower.includes('prime')) {
-    return 'delivery';
-  }
-  return 'software';
+  return formatLocalDate(nextDate);
 };
 
 const mapSubscriptionFromApi = (
@@ -63,71 +97,32 @@ const mapSubscriptionFromApi = (
 ): Subscription => {
   const categoryMatch = categories.find((c) => c.id === sub.category);
   const categoryName = categoryMatch?.name ?? '';
-  const localCategory = categoryName ? detectCategoryByName(categoryName) : 'software';
   const status = (sub.status ?? 'active') as Subscription['status'];
-  const nextPayment = sub.next_payment_date ?? sub.start_date ?? new Date().toISOString().slice(0, 10);
+  const rawNextPayment = sub.next_payment_date ?? sub.start_date ?? new Date().toISOString().slice(0, 10);
+  const billingPeriod = (sub.billing_period ?? 'month') as Subscription['billingPeriod'];
+  const billingInterval = Number(sub.billing_interval ?? 1) || 1;
+  const nextPayment = getNextPaymentDate(rawNextPayment, billingPeriod, billingInterval, getServerNow());
 
   return {
     id: String(sub.id),
     backendId: sub.id,
     name: sub.name,
     price: Number(sub.price),
-    currency: (sub.currency ?? 'RUB') as Subscription['currency'],
-    billingPeriod: (sub.billing_period ?? 'month') as Subscription['billingPeriod'],
+    currency: sub.currency ?? 'RUB',
+    billingPeriod,
+    billingInterval,
+    startDate: sub.start_date ?? undefined,
     nextChargeDate: nextPayment,
-    category: localCategory,
     categoryId: sub.category ?? null,
     categoryName: categoryMatch?.name ?? null,
     isActive: status === 'active',
     status,
-    createdAt: sub.start_date ?? new Date().toISOString(),
-    updatedAt: sub.start_date ?? new Date().toISOString(),
+    createdAt: sub.created_at ?? sub.start_date ?? new Date().toISOString(),
+    updatedAt: sub.updated_at ?? sub.start_date ?? new Date().toISOString(),
+    description: sub.description ?? undefined,
     notes: sub.notes ?? undefined,
     url: sub.service_url ?? undefined,
   };
-};
-
-const normalizeMonthKey = (label: string, index: number) => {
-  const directMatch = label.match(/^(\d{4})[-./](\d{1,2})$/);
-  if (directMatch) {
-    const year = directMatch[1];
-    const month = directMatch[2].padStart(2, '0');
-    return `${year}-${month}`;
-  }
-
-  const monthNames = [
-    'jan',
-    'feb',
-    'mar',
-    'apr',
-    'may',
-    'jun',
-    'jul',
-    'aug',
-    'sep',
-    'oct',
-    'nov',
-    'dec',
-    'янв',
-    'фев',
-    'мар',
-    'апр',
-    'май',
-    'июн',
-    'июл',
-    'авг',
-    'сен',
-    'окт',
-    'ноя',
-    'дек',
-  ];
-  const lower = label.toLowerCase();
-  const monthIndex = monthNames.findIndex((m) => lower.includes(m));
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = monthIndex >= 0 ? (monthIndex % 12) + 1 : now.getMonth() + 1 + index;
-  const safeMonth = ((month - 1) % 12) + 1;
-  return `${year}-${String(safeMonth).padStart(2, '0')}`;
 };
 
 const importFromEmailTextLocal = async (text: string): Promise<Subscription | null> => {
@@ -160,7 +155,6 @@ const importFromEmailTextLocal = async (text: string): Promise<Subscription | nu
     }
   }
 
-  const category = detectCategoryByName(name);
   const today = new Date();
   const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate());
   const nextChargeDate = nextMonth.toISOString().slice(0, 10);
@@ -171,8 +165,10 @@ const importFromEmailTextLocal = async (text: string): Promise<Subscription | nu
     price: amount,
     currency: 'RUB',
     billingPeriod: 'month',
+    billingInterval: 1,
     nextChargeDate,
-    category,
+    categoryId: null,
+    categoryName: null,
     isActive: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -201,12 +197,35 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         }
       },
 
-      async fetchSubscriptions() {
+      async fetchSubscriptions(params) {
         set({ isLoading: true, error: null });
         try {
           await get().ensureCategories();
-          const data = await getSubscriptions();
+          const data = await getSubscriptions(params);
+          const now = getServerNow();
           const mapped = data.map((sub) => mapSubscriptionFromApi(sub, get().categories));
+          const toUpdate = data
+            .map((sub, index) => {
+              const period = (sub.billing_period ?? 'month') as Subscription['billingPeriod'];
+              const interval = Number(sub.billing_interval ?? 1) || 1;
+              const rawNext = sub.next_payment_date ?? sub.start_date;
+              const status = (sub.status ?? 'active') as Subscription['status'];
+              if (!rawNext || status !== 'active') return null;
+              const next = getNextPaymentDate(rawNext, period, interval, now);
+              if (next !== rawNext) {
+                return { backendId: sub.id, next_payment_date: next, index };
+              }
+              return null;
+            })
+            .filter((item): item is { backendId: number; next_payment_date: string; index: number } => !!item);
+
+          if (toUpdate.length > 0) {
+            Promise.allSettled(
+              toUpdate.map((item) =>
+                updateSubscription(item.backendId, { next_payment_date: item.next_payment_date }),
+              ),
+            ).catch(() => undefined);
+          }
           set({ subscriptions: mapped, isLoading: false });
         } catch (e) {
           set({
@@ -220,20 +239,19 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         set({ isLoading: true, error: null });
         try {
           await get().ensureCategories();
-          const categoryId =
-            get().categories.find((c) => detectCategoryByName(c.name) === sub.category)?.id ??
-            null;
+          const categoryId = sub.categoryId ?? null;
           const today = new Date().toISOString().slice(0, 10);
           const response = await createSubscription({
             name: sub.name ?? 'Новая подписка',
             category: categoryId,
-            description: '',
+            description: sub.description ?? '',
             price: sub.price ?? 0,
-            currency: 'RUB',
+            currency: sub.currency ?? 'RUB',
             billing_period: sub.billingPeriod ?? 'month',
-            start_date: today,
+            billing_interval: sub.billingInterval ?? 1,
+            start_date: sub.startDate ?? today,
             next_payment_date: sub.nextChargeDate ?? today,
-            status: sub.isActive === false ? 'paused' : 'active',
+            status: sub.status ?? (sub.isActive === false ? 'paused' : 'active'),
             service_url: sub.url ?? '',
             notes: sub.notes ?? '',
           });
@@ -262,19 +280,18 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           await get().ensureCategories();
           const current = get().subscriptions.find((s) => s.id === id);
           const backendId = current?.backendId ?? Number(id);
-          const categoryId =
-            data.category
-              ? get().categories.find((c) => detectCategoryByName(c.name) === data.category)?.id ??
-                null
-              : undefined;
+          const categoryId = data.categoryId;
           const updated = await updateSubscription(backendId, {
             name: data.name,
             category: categoryId,
+            description: data.description,
             price: data.price,
             currency: data.currency,
             billing_period: data.billingPeriod,
+            billing_interval: data.billingInterval,
+            start_date: data.startDate,
             next_payment_date: data.nextChargeDate,
-            status: data.isActive === false ? 'paused' : data.isActive === true ? 'active' : undefined,
+            status: data.status ?? (data.isActive === false ? 'paused' : data.isActive === true ? 'active' : undefined),
             service_url: data.url,
             notes: data.notes,
           });
@@ -337,24 +354,26 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         try {
           await get().ensureCategories();
           const data = await getAnalytics();
-          const totals: Record<SubscriptionCategory, number> = {
-            streaming: 0,
-            software: 0,
-            delivery: 0,
-            music: 0,
-            cloud: 0,
-          };
+          const totals: Record<string, number> = {};
 
           data.spending_by_category.forEach((item) => {
-            const local = detectCategoryByName(item.category__name ?? '');
-            totals[local] += Number(item.total ?? 0);
+            if (typeof item.category_id === 'number') {
+              totals[String(item.category_id)] = Number(item.total ?? 0);
+              return;
+            }
+            const serverName = item.category_name ?? item.category__name ?? null;
+            const matched = get().categories.find((cat) => cat.name === serverName);
+            const key = String(matched?.id ?? 'none');
+            totals[key] = Number(item.total ?? 0);
           });
 
-          const year = new Date().getFullYear();
           const monthly = data.spending_by_month.map((item) => ({
-            month: `${year}-${String(item.month).padStart(2, '0')}`,
+            month:
+              typeof item.month === 'number'
+                ? `${new Date().getFullYear()}-${String(item.month).padStart(2, '0')}`
+                : item.month,
             total: Number(item.total ?? 0),
-            byCategory: { ...totals },
+            byCategory: {},
           }));
 
           set({
@@ -363,8 +382,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
               totalByCategory: totals,
               totalPerMonthAverage:
                 monthly.length > 0
-                  ? Math.round((monthly.reduce((sum, m) => sum + m.total, 0) / monthly.length) * 100) /
-                    100
+                  ? Math.round((monthly.reduce((sum, m) => sum + m.total, 0) / monthly.length) * 100) / 100
                   : 0,
             },
           });
@@ -378,9 +396,12 @@ export const useSubscriptionStore = create<SubscriptionState>()(
       async loadForecast() {
         try {
           await get().ensureCategories();
+          if (get().subscriptions.length === 0) {
+            await get().fetchSubscriptions();
+          }
           const data = await getForecast();
           const months = data.monthly_chart_labels.map((label, index) => ({
-            month: normalizeMonthKey(label, index),
+            month: label,
             expectedTotal: Number(data.monthly_chart_values[index] ?? 0),
           }));
           set({
@@ -401,7 +422,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         }
       },
 
-      async getCategoryRecommendations() {
+      async getCategoryRecommendations(_categoryId: number) {
         return [];
       },
 

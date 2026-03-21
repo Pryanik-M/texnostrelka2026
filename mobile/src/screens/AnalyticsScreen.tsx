@@ -1,10 +1,10 @@
-import React, { useEffect, useMemo } from 'react';
+﻿import React, { useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { PieChart, BarChart } from 'react-native-gifted-charts';
 
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
-import { CATEGORIES } from '../constants/categories';
+import { mapCategoriesToConfig } from '../constants/categories';
 import { ScreenBackground } from '../components/ScreenBackground';
 import { Theme } from '../theme';
 
@@ -15,14 +15,15 @@ const monthKeyFromDate = (date: Date) => {
 };
 
 export const AnalyticsScreen: React.FC = () => {
-  const { analytics, loadAnalytics } = useSubscriptionStore();
+  const { analytics, loadAnalytics, categories, ensureCategories } = useSubscriptionStore();
   const navigation = useNavigation();
 
   useEffect(() => {
     if (!analytics) {
       loadAnalytics();
     }
-  }, [analytics, loadAnalytics]);
+    ensureCategories();
+  }, [analytics, loadAnalytics, ensureCategories]);
 
   const { currentMonthTotal, currentYearTotal, pieData, barData } = useMemo(() => {
     if (!analytics) {
@@ -45,9 +46,10 @@ export const AnalyticsScreen: React.FC = () => {
       .filter((m) => m.month.startsWith(String(currentYear)))
       .reduce((sum, m) => sum + m.total, 0);
 
+    const categoryConfig = mapCategoriesToConfig(categories);
     const colorByCategory: Record<string, string> = {};
-    CATEGORIES.forEach((cat) => {
-      colorByCategory[cat.id] = cat.color;
+    categoryConfig.forEach((cat) => {
+      colorByCategory[String(cat.id)] = cat.color;
     });
 
     const pieData = Object.entries(analytics.totalByCategory)
@@ -133,8 +135,8 @@ export const AnalyticsScreen: React.FC = () => {
                 />
               </View>
               <View style={styles.legendContainer}>
-                {CATEGORIES.map((cat) => {
-                  const value = analytics?.totalByCategory[cat.id] ?? 0;
+                {mapCategoriesToConfig(categories).map((cat) => {
+                  const value = analytics?.totalByCategory[String(cat.id)] ?? 0;
                   if (!value) return null;
                   return (
                     <View key={cat.id} style={styles.legendItem}>
@@ -204,6 +206,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
     color: Theme.colors.textPrimary,
+    fontFamily: 'Benzin-Medium',
   },
   subtitle: {
     marginTop: 4,
@@ -245,6 +248,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: Theme.colors.textPrimary,
+    fontFamily: 'Benzin-Medium',
   },
   chartRow: {
     marginTop: 8,

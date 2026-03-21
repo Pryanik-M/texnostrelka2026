@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -7,19 +7,33 @@ import {
   RefreshControl,
   TouchableOpacity,
   Alert,
+  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import { Subscription } from '../types';
-import { CATEGORY_LABELS } from '../constants/categories';
+import { getCategoryLabel } from '../constants/categories';
 import { ScreenBackground } from '../components/ScreenBackground';
 import { Theme } from '../theme';
 import { CatSticker } from '../components/CatSticker';
 
-const formatCurrency = (value: number) => {
-  return `${value.toLocaleString('ru-RU')} ₽/мес`;
+const periodLabel: Record<Subscription['billingPeriod'], string> = {
+  day: 'день',
+  week: 'нед',
+  month: 'мес',
+  year: 'год',
+};
+
+const formatCurrency = (
+  value: number,
+  currency: string,
+  period: Subscription['billingPeriod'],
+  interval = 1,
+) => {
+  const suffix = interval > 1 ? `${interval} ${periodLabel[period]}` : periodLabel[period];
+  return `${value.toLocaleString('ru-RU')} ${currency}/${suffix}`;
 };
 
 const formatDate = (isoDate: string) => {
@@ -40,8 +54,13 @@ const daysUntil = (isoDate: string) => {
   return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 };
 
-const SubscriptionItem: React.FC<{ item: Subscription; onPress: () => void }> = ({
+const SubscriptionItem: React.FC<{
+  item: Subscription;
+  categoryLabel: string;
+  onPress: () => void;
+}> = ({
   item,
+  categoryLabel,
   onPress,
 }) => {
   const days = daysUntil(item.nextChargeDate);
@@ -50,13 +69,17 @@ const SubscriptionItem: React.FC<{ item: Subscription; onPress: () => void }> = 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.9}>
       <View style={styles.cardHeader}>
-        <View>
-          <Text style={styles.cardTitle}>{item.name}</Text>
-          <Text style={styles.cardCategory}>
-            {CATEGORY_LABELS[item.category] ?? item.category}
+        <View style={styles.cardTitleBlock}>
+          <Text style={styles.cardTitle} numberOfLines={1}>
+            {item.name}
+          </Text>
+          <Text style={styles.cardCategory} numberOfLines={1}>
+            {categoryLabel}
           </Text>
         </View>
-        <Text style={styles.cardPrice}>{formatCurrency(item.price)}</Text>
+        <Text style={styles.cardPrice}>
+          {formatCurrency(item.price, item.currency, item.billingPeriod, item.billingInterval)}
+        </Text>
       </View>
 
       <View style={styles.cardFooter}>
@@ -80,7 +103,7 @@ const SubscriptionItem: React.FC<{ item: Subscription; onPress: () => void }> = 
             {days !== null && days >= 0 && (
               <Text
                 style={{
-                  color: isDanger ? '#ffd1d1' : Theme.colors.textMuted,
+                  color: isDanger ? Theme.colors.danger : Theme.colors.textMuted,
                 }}
               >
                 {`  (через ${days} д.)`}
@@ -94,15 +117,21 @@ const SubscriptionItem: React.FC<{ item: Subscription; onPress: () => void }> = 
 };
 
 export const HomeScreen: React.FC = () => {
-  const { subscriptions, fetchSubscriptions, isLoading } = useSubscriptionStore();
+  const { subscriptions, fetchSubscriptions, isLoading, forecast, loadForecast, categories } = useSubscriptionStore();
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'paused' | 'cancelled'>('all');
+  const [order, setOrder] = useState<'-created_at' | 'created_at' | '-price' | 'price' | 'next_payment_date' | 'name'>('-created_at');
   const navigation = useNavigation();
 
   useEffect(() => {
     if (!subscriptions.length) {
       fetchSubscriptions();
     }
-  }, [fetchSubscriptions, subscriptions.length]);
+    if (!forecast) {
+      loadForecast();
+    }
+  }, [fetchSubscriptions, subscriptions.length, forecast, loadForecast]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -110,14 +139,21 @@ export const HomeScreen: React.FC = () => {
     setRefreshing(false);
   }, [fetchSubscriptions]);
 
-  const totalPerMonth = useMemo(
-    () =>
-      subscriptions.reduce((sum, s) => {
-        if (!s.isActive) return sum;
-        return sum + s.price;
-      }, 0),
-    [subscriptions],
-  );
+  const totalPerMonth = useMemo(() => forecast?.monthlyForecast ?? 0, [forecast]);
+
+  useEffect(() => {
+    const query = searchQuery.trim();
+    const timeout = setTimeout(() => {
+      fetchSubscriptions({
+        search: query || undefined,
+        status: statusFilter === 'all' ? undefined : statusFilter,
+        order,
+      });
+    }, 350);
+    return () => clearTimeout(timeout);
+  }, [fetchSubscriptions, searchQuery, statusFilter, order]);
+
+  const filteredSubscriptions = useMemo(() => subscriptions, [subscriptions]);
 
   const handleAddPress = () => {
     Alert.alert('Добавить подписку', 'Выберите источник', [
@@ -139,10 +175,11 @@ export const HomeScreen: React.FC = () => {
   const renderItem = ({ item }: { item: Subscription }) => (
     <SubscriptionItem
       item={item}
+      categoryLabel={item.categoryName ?? getCategoryLabel(categories, item.categoryId)}
       onPress={() =>
         navigation
           .getParent()
-          ?.navigate('SubscriptionDetail' as never, { subscriptionId: item.id } as never)
+          ?.navigate('SubscriptionDetail' as never, { subscriptionId: Number(item.id) } as never)
       }
     />
   );
@@ -151,7 +188,7 @@ export const HomeScreen: React.FC = () => {
     <ScreenBackground>
       <View style={styles.container}>
         <View style={styles.header}>
-          <View>
+          <View style={styles.headerTextBlock}>
             <Text style={styles.title}>Мои подписки</Text>
             <Text style={styles.subtitle}>
               Контролируйте регулярные расходы без лишней суеты
@@ -159,17 +196,80 @@ export const HomeScreen: React.FC = () => {
           </View>
           <View style={styles.totalContainer}>
             <Text style={styles.totalLabel}>Всего в месяц</Text>
-            <Text style={styles.totalValue}>{formatCurrency(totalPerMonth)}</Text>
+            <Text style={styles.totalValue} numberOfLines={1}>
+              {formatCurrency(totalPerMonth, 'RUB', 'month')}
+            </Text>
           </View>
         </View>
 
+        <View style={styles.searchBox}>
+          <Ionicons name="search" size={18} color={Theme.colors.textMuted} />
+          <TextInput
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Поиск подписок"
+            placeholderTextColor={Theme.colors.textMuted}
+            style={styles.searchInput}
+            autoCapitalize="none"
+            autoCorrect={false}
+            clearButtonMode="while-editing"
+          />
+        </View>
+
+        <View style={styles.filterRow}>
+          {[
+            { id: 'all', label: 'Все' },
+            { id: 'active', label: 'Активные' },
+            { id: 'paused', label: 'Пауза' },
+            { id: 'cancelled', label: 'Отключенные' },
+          ].map((item) => {
+            const selected = statusFilter === item.id;
+            return (
+              <TouchableOpacity
+                key={item.id}
+                style={[styles.filterChip, selected && styles.filterChipActive]}
+                onPress={() => setStatusFilter(item.id as typeof statusFilter)}
+              >
+                <Text style={[styles.filterText, selected && styles.filterTextActive]}>
+                  {item.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        <View style={styles.orderRow}>
+          <Text style={styles.orderLabel}>Сортировка:</Text>
+          {[
+            { id: '-created_at', label: 'Новые' },
+            { id: 'created_at', label: 'Старые' },
+            { id: '-price', label: 'Дороже' },
+            { id: 'price', label: 'Дешевле' },
+            { id: 'next_payment_date', label: 'По дате' },
+            { id: 'name', label: 'По названию' },
+          ].map((item) => {
+            const selected = order === item.id;
+            return (
+              <TouchableOpacity
+                key={item.id}
+                style={[styles.orderChip, selected && styles.orderChipActive]}
+                onPress={() => setOrder(item.id as typeof order)}
+              >
+                <Text style={[styles.orderText, selected && styles.orderTextActive]}>
+                  {item.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
         <FlatList
-          data={subscriptions}
+          data={filteredSubscriptions}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           contentContainerStyle={[
             styles.listContent,
-            !subscriptions.length && { flex: 1, justifyContent: 'center' },
+            !filteredSubscriptions.length && { flex: 1, justifyContent: 'center' },
           ]}
           refreshControl={
             <RefreshControl
@@ -186,16 +286,16 @@ export const HomeScreen: React.FC = () => {
                 color={Theme.colors.textPrimary}
                 accent={Theme.colors.accent}
               />
-              <Text style={styles.emptyTitle}>Пока нет подписок</Text>
+              <Text style={styles.emptyTitle}>Ничего не найдено</Text>
               <Text style={styles.emptySubtitle}>
-                Нажмите на кнопку «+», чтобы добавить первую подписку.
+                Попробуйте изменить запрос или добавьте первую подписку.
               </Text>
             </View>
           }
         />
 
         <TouchableOpacity style={styles.fab} onPress={handleAddPress} activeOpacity={0.85}>
-          <Ionicons name="add" size={28} color={Theme.colors.background} />
+          <Ionicons name="add" size={28} color={Theme.colors.textOnAccent} />
         </TouchableOpacity>
       </View>
     </ScreenBackground>
@@ -213,11 +313,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 12,
+  },
+  headerTextBlock: {
+    flex: 1,
+    paddingRight: 8,
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '800',
     color: Theme.colors.textPrimary,
+    fontFamily: 'Benzin-Medium',
   },
   subtitle: {
     marginTop: 4,
@@ -226,6 +332,14 @@ const styles = StyleSheet.create({
   },
   totalContainer: {
     alignItems: 'flex-end',
+    backgroundColor: Theme.colors.surfaceAlt,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: Theme.radii.md,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+    maxWidth: '45%',
+    flexShrink: 1,
   },
   totalLabel: {
     fontSize: 12,
@@ -241,6 +355,85 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 80,
   },
+  searchBox: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 8,
+    backgroundColor: Theme.colors.surface,
+    borderRadius: Theme.radii.md,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingHorizontal: 16,
+    marginBottom: 8,
+  },
+  filterChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+    backgroundColor: Theme.colors.surfaceAlt,
+  },
+  filterChipActive: {
+    backgroundColor: Theme.colors.accent,
+    borderColor: Theme.colors.accent,
+  },
+  filterText: {
+    fontSize: 12,
+    color: Theme.colors.textSecondary,
+  },
+  filterTextActive: {
+    color: Theme.colors.textOnAccent,
+    fontWeight: '600',
+  },
+  orderRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingHorizontal: 16,
+    marginBottom: 8,
+    alignItems: 'center',
+  },
+  orderLabel: {
+    fontSize: 12,
+    color: Theme.colors.textSecondary,
+    marginRight: 4,
+  },
+  orderChip: {
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+    backgroundColor: Theme.colors.surfaceAlt,
+  },
+  orderChipActive: {
+    backgroundColor: Theme.colors.accentStrong,
+    borderColor: Theme.colors.accentStrong,
+  },
+  orderText: {
+    fontSize: 12,
+    color: Theme.colors.textSecondary,
+  },
+  orderTextActive: {
+    color: Theme.colors.textOnAccent,
+    fontWeight: '600',
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: Theme.colors.textPrimary,
+  },
   card: {
     backgroundColor: Theme.colors.surface,
     borderRadius: Theme.radii.lg,
@@ -248,27 +441,34 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: Theme.colors.border,
+    ...Theme.shadow.soft,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 10,
+    gap: 12,
+  },
+  cardTitleBlock: {
+    flex: 1,
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: Theme.colors.textPrimary,
+    flexShrink: 1,
   },
   cardCategory: {
     marginTop: 4,
     fontSize: 12,
     color: Theme.colors.textSecondary,
+    flexShrink: 1,
   },
   cardPrice: {
     fontSize: 16,
     fontWeight: '700',
-    color: Theme.colors.accentWarm,
+    color: Theme.colors.accent,
   },
   cardFooter: {
     flexDirection: 'row',
@@ -316,10 +516,10 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.colors.accent,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: Theme.colors.accent,
+    shadowColor: Theme.colors.accentStrong,
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
     elevation: 8,
   },
 });

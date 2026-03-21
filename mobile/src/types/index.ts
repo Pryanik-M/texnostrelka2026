@@ -1,9 +1,4 @@
-export type SubscriptionCategory =
-  | 'streaming'
-  | 'software'
-  | 'delivery'
-  | 'music'
-  | 'cloud';
+export type SubscriptionCategoryId = number;
 
 export type BillingPeriod = 'day' | 'week' | 'month' | 'year';
 
@@ -12,16 +7,18 @@ export interface Subscription {
   backendId?: number;
   name: string;
   price: number;
-  currency: 'RUB';
+  currency: string;
   billingPeriod: BillingPeriod;
+  billingInterval?: number;
+  startDate?: string;
   nextChargeDate: string; // ISO string
-  category: SubscriptionCategory;
   categoryId?: number | null;
   categoryName?: string | null;
   isActive: boolean;
   status?: 'active' | 'paused' | 'cancelled';
   createdAt: string;
   updatedAt: string;
+  description?: string;
   notes?: string;
   url?: string;
   usageCount?: number;
@@ -31,12 +28,12 @@ export interface Subscription {
 export interface MonthlyAnalytics {
   month: string; // e.g. "2026-04"
   total: number;
-  byCategory: Record<SubscriptionCategory, number>;
+  byCategory: Record<string, number>;
 }
 
 export interface AnalyticsSummary {
   monthly: MonthlyAnalytics[];
-  totalByCategory: Record<SubscriptionCategory, number>;
+  totalByCategory: Record<string, number>;
   totalPerMonthAverage: number;
 }
 
@@ -52,7 +49,7 @@ export interface Forecast {
   yearlyForecast?: number;
   upcomingSubscriptions?: Subscription[];
   recommendations?: {
-    topCategory?: SubscriptionCategory | null;
+    topCategory?: SubscriptionCategoryId | null;
     mostExpensiveSubscription?: Subscription | null;
   };
 }
@@ -62,7 +59,7 @@ export interface Recommendation {
   name: string;
   price: number;
   currency: 'RUB';
-  category: SubscriptionCategory;
+  category: SubscriptionCategoryId;
   description?: string;
   vendor?: string;
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,13 +9,13 @@ import {
   Platform,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import * as SecureStore from 'expo-secure-store';
 
-import { login } from '../api/client';
-import { AUTH_TOKEN_KEY, RootStackParamList } from '../navigation/AppNavigator';
+import { login, saveTokens } from '../api/client';
+import { RootStackParamList } from '../navigation/types';
 import { ScreenBackground } from '../components/ScreenBackground';
 import { Theme } from '../theme';
 
@@ -33,6 +33,7 @@ const loginSchema = yup.object({
 
 export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [serverError, setServerError] = useState<string | null>(null);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const {
     control,
     handleSubmit,
@@ -44,12 +45,15 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   });
 
   const onSubmit = async (values: LoginFormValues) => {
-    setServerError(null);
+      setServerError(null);
     try {
+      console.log('[Login] submit', values.email.trim());
       const response = await login(values.email.trim(), values.password);
-      await SecureStore.setItemAsync(AUTH_TOKEN_KEY, response.access);
+      await saveTokens(response.access, response.refresh);
+      console.log('[Login] success');
       navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     } catch (error) {
+      console.log('[Login] error', error);
       setServerError(error instanceof Error ? error.message : 'Ошибка входа');
     }
   };
@@ -58,12 +62,13 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
     <ScreenBackground>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 80}
       >
         <View style={styles.content}>
-          <Text style={styles.badge}>Монитор подписок</Text>
-          <Text style={styles.title}>Добро пожаловать</Text>
-          <Text style={styles.subtitle}>Вход через API с JWT-токеном.</Text>
+          <Text style={styles.badge}>BANANOSUBS</Text>
+          <Text style={styles.title}>Вход</Text>
+          <Text style={styles.subtitle}>Введите email и пароль.</Text>
 
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Вход</Text>
@@ -74,14 +79,14 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
               name="email"
               render={({ field: { value, onChange, onBlur } }) => (
                 <TextInput
-                  style={[styles.input, errors.email && styles.inputError]}
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  placeholder="you@example.com"
-                  placeholderTextColor={Theme.colors.textMuted}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
+                    style={[styles.input, errors.email && styles.inputError]}
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    placeholder="Email"
+                    placeholderTextColor={Theme.colors.textMuted}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
                 />
               )}
             />
@@ -92,15 +97,24 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
               control={control}
               name="password"
               render={({ field: { value, onChange, onBlur } }) => (
-                <TextInput
-                  style={[styles.input, errors.password && styles.inputError]}
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  placeholder="Минимум 6 символов"
-                  placeholderTextColor={Theme.colors.textMuted}
-                  secureTextEntry
-                />
+                <View style={[styles.passwordContainer, errors.password && styles.inputError]}>
+                  <TextInput
+                    style={styles.passwordInput}
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    placeholder="Пароль"
+                    placeholderTextColor={Theme.colors.textMuted}
+                    secureTextEntry={!isPasswordVisible}
+                  />
+                  <TouchableOpacity onPress={() => setIsPasswordVisible((prev) => !prev)}>
+                    <Ionicons
+                      name={isPasswordVisible ? 'eye-off-outline' : 'eye-outline'}
+                      size={20}
+                      color={Theme.colors.textMuted}
+                    />
+                  </TouchableOpacity>
+                </View>
               )}
             />
             {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
@@ -124,6 +138,13 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
                 <Text style={styles.secondaryLink}>Зарегистрироваться</Text>
               </Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.forgotButton}
+              onPress={() => navigation.navigate('ForgotPassword')}
+            >
+              <Text style={styles.forgotText}>Забыли пароль?</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -143,7 +164,7 @@ const styles = StyleSheet.create({
     color: Theme.colors.textSecondary,
     fontSize: 12,
   },
-  title: { fontSize: 32, fontWeight: '800', color: Theme.colors.textPrimary, marginTop: 16 },
+  title: { fontSize: 32, fontWeight: '800', color: Theme.colors.textPrimary, marginTop: 16, fontFamily: 'Benzin-Medium' },
   subtitle: { marginTop: 8, color: Theme.colors.textSecondary, fontSize: 14 },
   card: {
     marginTop: 32,
@@ -154,7 +175,7 @@ const styles = StyleSheet.create({
     borderColor: Theme.colors.border,
     ...Theme.shadow.soft,
   },
-  cardTitle: { fontSize: 18, fontWeight: '600', color: Theme.colors.textPrimary, marginBottom: 16 },
+  cardTitle: { fontSize: 18, fontWeight: '600', color: Theme.colors.textPrimary, marginBottom: 16, fontFamily: 'Benzin-Medium' },
   label: { fontSize: 13, color: Theme.colors.textSecondary, marginBottom: 4 },
   input: {
     borderRadius: Theme.radii.sm,
@@ -167,6 +188,22 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.colors.surfaceAlt,
   },
   inputError: { borderColor: Theme.colors.danger },
+  passwordContainer: {
+    borderRadius: Theme.radii.sm,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: Theme.colors.surfaceAlt,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  passwordInput: {
+    flex: 1,
+    color: Theme.colors.textPrimary,
+    fontSize: 15,
+  },
   errorText: { marginTop: 4, fontSize: 12, color: Theme.colors.danger },
   button: {
     marginTop: 24,
@@ -176,8 +213,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     ...Theme.shadow.glow,
   },
-  buttonText: { color: Theme.colors.background, fontSize: 16, fontWeight: '700' },
+  buttonText: { color: Theme.colors.textOnAccent, fontSize: 16, fontWeight: '700' },
   secondaryButton: { marginTop: 12, alignItems: 'center' },
   secondaryButtonText: { color: Theme.colors.textSecondary, fontSize: 13 },
   secondaryLink: { color: Theme.colors.accent, fontWeight: '600' },
+  forgotButton: { marginTop: 10, alignItems: 'center' },
+  forgotText: { color: Theme.colors.accentStrong, fontSize: 13, fontWeight: '600' },
 });
+
+
+
+

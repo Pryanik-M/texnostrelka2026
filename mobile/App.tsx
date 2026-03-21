@@ -3,13 +3,18 @@ import { NavigationContainer } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
+import { ActivityIndicator, View } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { useSubscriptionStore } from './src/store/useSubscriptionStore';
+import { Theme } from './src/theme';
+import { AUTH_TOKEN_KEY } from './src/constants/auth';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: false,
     shouldSetBadge: false,
   }),
@@ -29,6 +34,11 @@ export default function App() {
 
   useEffect(() => {
     const setupNotifications = async () => {
+      const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
+      if (!token) {
+        return;
+      }
+
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
       if (existingStatus !== 'granted') {
@@ -56,12 +66,19 @@ export default function App() {
 
       for (const item of upcoming) {
         const { sub, days } = item;
+        const targetDate = new Date(sub.nextChargeDate);
+        if (Number.isNaN(targetDate.getTime())) continue;
+        const remindAt = new Date(targetDate);
+        remindAt.setDate(targetDate.getDate() - (days ?? 1));
+        remindAt.setHours(10, 0, 0, 0);
+        if (remindAt.getTime() <= Date.now()) continue;
+
         await Notifications.scheduleNotificationAsync({
           content: {
             title: 'Скоро списание по подписке',
             body: `Через ${days} д. спишется ${sub.price} руб. за ${sub.name}`,
           },
-          trigger: null,
+          trigger: { date: remindAt },
         });
       }
     };
@@ -79,4 +96,3 @@ export default function App() {
     </GestureHandlerRootView>
   );
 }
-

@@ -1,11 +1,11 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Linking from 'expo-linking';
 
-import { RootStackParamList } from '../navigation/AppNavigator';
+import { RootStackParamList } from '../navigation/types';
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
-import { CATEGORY_LABELS } from '../constants/categories';
 import { BillingPeriod } from '../types';
 import { ScreenBackground } from '../components/ScreenBackground';
 import { Theme } from '../theme';
@@ -19,9 +19,10 @@ const periodMap: Record<BillingPeriod, string> = {
   year: 'год',
 };
 
-const formatCurrency = (value: number, period: BillingPeriod) => {
+const formatCurrency = (value: number, currency: string, period: BillingPeriod, interval = 1) => {
   const base = value.toLocaleString('ru-RU');
-  return `${base} ₽/${periodMap[period]}`;
+  const suffix = interval > 1 ? `${interval} ${periodMap[period]}` : periodMap[period];
+  return `${base} ${currency}/${suffix}`;
 };
 
 const formatDate = (isoDate: string | undefined) => {
@@ -35,27 +36,22 @@ const formatDate = (isoDate: string | undefined) => {
   });
 };
 
-const formatDateTimeShort = (isoDate?: string) => {
-  if (!isoDate) return 'ещё не использовалась';
-  const d = new Date(isoDate);
-  if (Number.isNaN(d.getTime())) return isoDate;
-  return d.toLocaleString('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-};
-
 export const SubscriptionDetailScreen: React.FC = () => {
   const route = useRoute<DetailRouteProp>();
-  const navigation = useNavigation();
-  const { subscriptions, update, remove } = useSubscriptionStore();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { subscriptions, remove } = useSubscriptionStore();
 
   const subscription = useMemo(
-    () => subscriptions.find((s) => s.id === route.params?.subscriptionId),
+    () => subscriptions.find((s) => s.id === String(route.params?.subscriptionId)),
     [subscriptions, route.params],
   );
+
+  const statusLabel =
+    subscription?.status === 'paused'
+      ? 'Пауза'
+      : subscription?.status === 'cancelled'
+        ? 'Отключена'
+        : 'Активна';
 
   if (!subscription) {
     return (
@@ -73,10 +69,10 @@ export const SubscriptionDetailScreen: React.FC = () => {
     );
   }
 
-  const categoryLabel = CATEGORY_LABELS[subscription.category] ?? subscription.category;
+  const categoryLabel = subscription.categoryName ?? 'Без категории';
 
   const handleCancel = () => {
-    const template = `Тема: Отмена подписки ${subscription.name}\n\nЗдравствуйте!\n\nПрошу отменить мою подписку на сервис «${subscription.name}».\n\nДанные подписки:\n- Сервис: ${subscription.name}\n- Текущий тариф: ${formatCurrency(subscription.price, subscription.billingPeriod)}\n- Дата следующего списания: ${formatDate(subscription.nextChargeDate)}`;
+  const template = `Тема: Отмена подписки ${subscription.name}\n\nЗдравствуйте!\n\nПрошу отменить мою подписку на сервис «${subscription.name}».\n\nДанные подписки:\n- Сервис: ${subscription.name}\n- Текущий тариф: ${formatCurrency(subscription.price, subscription.currency, subscription.billingPeriod, subscription.billingInterval)}\n- Дата следующего списания: ${formatDate(subscription.nextChargeDate)}`;
 
     Alert.alert('Шаблон письма в поддержку', template, [
       {
@@ -91,12 +87,6 @@ export const SubscriptionDetailScreen: React.FC = () => {
       },
       { text: 'Закрыть', style: 'cancel' },
     ]);
-  };
-
-  const handleMarkUsage = async () => {
-    const nextCount = (subscription.usageCount ?? 0) + 1;
-    const lastUsedAt = new Date().toISOString();
-    await update(subscription.id, { usageCount: nextCount, lastUsedAt });
   };
 
   const handleDelete = async () => {
@@ -123,7 +113,7 @@ export const SubscriptionDetailScreen: React.FC = () => {
           <View style={styles.rowBetween}>
             <Text style={styles.label}>Стоимость</Text>
             <Text style={styles.valueStrong}>
-              {formatCurrency(subscription.price, subscription.billingPeriod)}
+              {formatCurrency(subscription.price, subscription.currency, subscription.billingPeriod, subscription.billingInterval)}
             </Text>
           </View>
 
@@ -137,10 +127,21 @@ export const SubscriptionDetailScreen: React.FC = () => {
             <Text
               style={[
                 styles.value,
-                subscription.isActive ? styles.badgeActive : styles.badgeInactive,
+                subscription.status === 'paused'
+                  ? styles.badgePaused
+                  : subscription.status === 'cancelled'
+                    ? styles.badgeInactive
+                    : styles.badgeActive,
               ]}
             >
-              {subscription.isActive ? 'Активна' : 'Отключена'}
+              {statusLabel}
+            </Text>
+          </View>
+
+          <View style={styles.rowBetween}>
+            <Text style={styles.label}>Дата начала</Text>
+            <Text style={styles.value}>
+              {formatDate(subscription.startDate ?? subscription.createdAt)}
             </Text>
           </View>
 
@@ -164,6 +165,13 @@ export const SubscriptionDetailScreen: React.FC = () => {
           </View>
         ) : null}
 
+        {subscription.description ? (
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Описание</Text>
+            <Text style={styles.notesText}>{subscription.description}</Text>
+          </View>
+        ) : null}
+
         {subscription.notes ? (
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Заметки</Text>
@@ -171,18 +179,13 @@ export const SubscriptionDetailScreen: React.FC = () => {
           </View>
         ) : null}
 
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Использование</Text>
-          <Text style={styles.value}>
-            Использована <Text style={styles.valueStrong}>{subscription.usageCount ?? 0} раз</Text>
-          </Text>
-          <Text style={[styles.value, { marginTop: 4 }]}>
-            Последний раз: {formatDateTimeShort(subscription.lastUsedAt)}
-          </Text>
-        </View>
-
-        <TouchableOpacity style={styles.primaryButton} onPress={handleMarkUsage}>
-          <Text style={styles.primaryButtonText}>Отметить использование</Text>
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() =>
+            navigation.navigate('SubscriptionForm', { subscriptionId: Number(subscription.id) })
+          }
+        >
+          <Text style={styles.editButtonText}>Редактировать подписку</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.secondaryButton} onPress={handleCancel}>
@@ -210,6 +213,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '800',
     color: Theme.colors.textPrimary,
+    fontFamily: 'Benzin-Medium',
   },
   category: {
     marginTop: 4,
@@ -247,6 +251,10 @@ const styles = StyleSheet.create({
     color: Theme.colors.accentStrong,
     fontWeight: '600',
   },
+  badgePaused: {
+    color: Theme.colors.accent,
+    fontWeight: '600',
+  },
   badgeInactive: {
     color: Theme.colors.danger,
     fontWeight: '600',
@@ -256,6 +264,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Theme.colors.textPrimary,
     marginBottom: 8,
+    fontFamily: 'Benzin-Medium',
   },
   notesText: {
     fontSize: 14,
@@ -269,18 +278,18 @@ const styles = StyleSheet.create({
     color: Theme.colors.accent,
     textDecorationLine: 'underline',
   },
-  primaryButton: {
-    marginTop: 24,
+  editButton: {
+    marginTop: 18,
     borderRadius: Theme.radii.md,
-    backgroundColor: Theme.colors.accent,
-    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: Theme.colors.accent,
+    paddingVertical: 11,
     alignItems: 'center',
-    ...Theme.shadow.glow,
   },
-  primaryButtonText: {
-    color: Theme.colors.background,
-    fontSize: 16,
-    fontWeight: '700',
+  editButtonText: {
+    color: Theme.colors.accent,
+    fontSize: 14,
+    fontWeight: '600',
   },
   secondaryButton: {
     marginTop: 12,
@@ -299,7 +308,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     borderRadius: Theme.radii.md,
     borderWidth: 1,
-    borderColor: '#b91c1c',
+    borderColor: Theme.colors.danger,
     paddingVertical: 11,
     alignItems: 'center',
   },
@@ -325,5 +334,18 @@ const styles = StyleSheet.create({
     color: Theme.colors.textSecondary,
     textAlign: 'center',
     marginBottom: 16,
+  },
+  primaryButton: {
+    marginTop: 10,
+    borderRadius: Theme.radii.md,
+    backgroundColor: Theme.colors.accent,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  primaryButtonText: {
+    color: Theme.colors.textOnAccent,
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

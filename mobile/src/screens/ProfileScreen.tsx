@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -10,17 +10,13 @@ import {
   ScrollView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import * as SecureStore from 'expo-secure-store';
-import * as Notifications from 'expo-notifications';
-
 import {
-  AUTH_TOKEN_KEY,
+  clearTokens,
   connectEmail,
   emailDisconnect,
   emailSync,
   getProfile,
-  registerDevice,
-  testPush,
+  logout,
 } from '../api/client';
 import { ScreenBackground } from '../components/ScreenBackground';
 import { Theme } from '../theme';
@@ -37,7 +33,6 @@ export const ProfileScreen: React.FC = () => {
   const [connecting, setConnecting] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
-  const [pushRegistering, setPushRegistering] = useState(false);
   const [password, setPassword] = useState('');
 
   const loadProfile = useCallback(async () => {
@@ -62,6 +57,7 @@ export const ProfileScreen: React.FC = () => {
   }, [loadProfile]);
 
   const handleConnectEmail = async () => {
+    console.log('[Profile] connect email');
     if (!password.trim()) {
       Alert.alert('Нужен пароль приложения', 'Введите пароль приложения от почты.');
       return;
@@ -84,6 +80,7 @@ export const ProfileScreen: React.FC = () => {
   };
 
   const handleSyncEmail = async () => {
+    console.log('[Profile] sync email');
     setSyncing(true);
     try {
       const response = await emailSync();
@@ -97,6 +94,7 @@ export const ProfileScreen: React.FC = () => {
   };
 
   const handleDisconnectEmail = async () => {
+    console.log('[Profile] disconnect email');
     setDisconnecting(true);
     try {
       const response = await emailDisconnect();
@@ -109,44 +107,14 @@ export const ProfileScreen: React.FC = () => {
     }
   };
 
-  const handleRegisterPush = async () => {
-    setPushRegistering(true);
-    try {
-      const settings = await Notifications.getPermissionsAsync();
-      if (settings.status !== 'granted') {
-        const req = await Notifications.requestPermissionsAsync();
-        if (req.status !== 'granted') {
-          Alert.alert('Разрешение нужно', 'Без разрешения уведомления не будут приходить.');
-          setPushRegistering(false);
-          return;
-        }
-      }
-
-      const token = await Notifications.getDevicePushTokenAsync();
-      await registerDevice(token.data);
-      Alert.alert('Устройство зарегистрировано', 'Теперь можно отправлять тестовое уведомление.');
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Не удалось зарегистрировать устройство';
-      const hint = message.includes('FirebaseApp')
-        ? 'Push на Android требует настройки Firebase/FCM. Если пока не настраиваем — можно пропустить.'
-        : message;
-      Alert.alert('Ошибка', hint);
-    } finally {
-      setPushRegistering(false);
-    }
-  };
-
-  const handleTestPush = async () => {
-    try {
-      await testPush();
-      Alert.alert('Отправлено', 'Тестовое уведомление отправлено.');
-    } catch (error) {
-      Alert.alert('Ошибка', error instanceof Error ? error.message : 'Не удалось отправить тест');
-    }
-  };
-
   const handleLogout = async () => {
-    await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY);
+    console.log('[Profile] logout');
+    try {
+      await logout();
+    } catch {
+      // ignore logout errors, we still clear local session
+    }
+    await clearTokens();
     navigation.reset({ index: 0, routes: [{ name: 'Login' as never }] });
   };
 
@@ -237,32 +205,14 @@ export const ProfileScreen: React.FC = () => {
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Кандидаты</Text>
-          <Text style={styles.sectionHint}>Кандидаты приходят после анализа почты.</Text>
-          <TouchableOpacity
-            style={[styles.primaryButton, !candidatesCount && { opacity: 0.6 }]}
-            onPress={() => navigation.getParent()?.navigate('Candidates' as never)}
-            disabled={!candidatesCount}
-          >
-            <Text style={styles.primaryButtonText}>{candidatesLabel}</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Уведомления</Text>
           <Text style={styles.sectionHint}>
-            Зарегистрируйте устройство для push и отправьте тест.
+            Письма с потенциальными подписками после синхронизации почты.
           </Text>
           <TouchableOpacity
-            style={[styles.primaryButton, pushRegistering && { opacity: 0.7 }]}
-            onPress={handleRegisterPush}
-            disabled={pushRegistering}
+            style={styles.primaryButton}
+            onPress={() => navigation.navigate('Candidates' as never)}
           >
-            <Text style={styles.primaryButtonText}>
-              {pushRegistering ? 'Регистрируем...' : 'Зарегистрировать устройство'}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.secondaryButton} onPress={handleTestPush}>
-            <Text style={styles.secondaryButtonText}>Тестовое уведомление</Text>
+            <Text style={styles.primaryButtonText}>{candidatesLabel}</Text>
           </TouchableOpacity>
         </View>
 
@@ -284,6 +234,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
     color: Theme.colors.textPrimary,
+    fontFamily: 'Benzin-Medium',
   },
   subtitle: {
     marginTop: 4,
@@ -323,13 +274,22 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: Theme.colors.textPrimary,
+    fontFamily: 'Benzin-Medium',
   },
   sectionHint: {
     marginTop: 6,
     fontSize: 12,
     color: Theme.colors.textSecondary,
   },
-  input: {
+
+
+
+
+
+
+
+
+input: {
     marginTop: 12,
     borderRadius: Theme.radii.sm,
     borderWidth: 1,
@@ -348,7 +308,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   primaryButtonText: {
-    color: Theme.colors.background,
+    color: Theme.colors.textOnAccent,
     fontSize: 14,
     fontWeight: '700',
   },
@@ -379,3 +339,22 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

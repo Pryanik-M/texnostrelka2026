@@ -1,5 +1,7 @@
-import React from 'react';
+﻿import React from 'react';
 import Svg, { Path, Circle } from 'react-native-svg';
+
+import { Theme } from '../theme';
 
 type Props = {
   size?: number;
@@ -9,8 +11,8 @@ type Props = {
 
 export const CatSticker: React.FC<Props> = ({
   size = 96,
-  color = '#f8fafc',
-  accent = '#4de6c7',
+  color = Theme.colors.textPrimary,
+  accent = Theme.colors.accent,
 }) => {
   const stroke = color;
   const highlight = accent;

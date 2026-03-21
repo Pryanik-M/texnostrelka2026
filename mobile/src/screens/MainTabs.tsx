@@ -4,14 +4,14 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { HomeScreen } from './HomeScreen';
 import { AnalyticsScreen } from './AnalyticsScreen';
-import { NotificationsScreen } from './NotificationsScreen';
+import { ForecastScreen } from './ForecastScreen';
 import { ProfileScreen } from './ProfileScreen';
 import { Theme } from '../theme';
 
 export type MainTabParamList = {
   Subscriptions: undefined;
   Analytics: undefined;
-  Notifications: undefined;
+  Forecast: undefined;
   Profile: undefined;
 };
 
@@ -25,17 +25,21 @@ export const MainTabs: React.FC = () => {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: Theme.colors.surfaceAlt,
+          backgroundColor: Theme.colors.surface,
+          borderTopWidth: 1,
           borderTopColor: Theme.colors.border,
           height: 64,
           paddingBottom: 8,
           paddingTop: 6,
+          elevation: 2,
+          shadowOpacity: 0.1,
         },
         tabBarActiveTintColor: Theme.colors.accent,
         tabBarInactiveTintColor: Theme.colors.textMuted,
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '600',
+          fontFamily: 'Montserrat-Medium',
         },
         tabBarIcon: ({ color, size }) => {
           let iconName: keyof typeof Ionicons.glyphMap = 'home';
@@ -44,8 +48,8 @@ export const MainTabs: React.FC = () => {
             iconName = 'card-outline';
           } else if (route.name === 'Analytics') {
             iconName = 'analytics-outline';
-          } else if (route.name === 'Notifications') {
-            iconName = 'notifications-outline';
+          } else if (route.name === 'Forecast') {
+            iconName = 'calendar-outline';
           } else if (route.name === 'Profile') {
             iconName = 'person-circle-outline';
           }
@@ -65,9 +69,9 @@ export const MainTabs: React.FC = () => {
         options={{ title: 'Аналитика' }}
       />
       <Tab.Screen
-        name="Notifications"
-        component={NotificationsScreen}
-        options={{ title: 'Уведомления' }}
+        name="Forecast"
+        component={ForecastScreen}
+        options={{ title: 'Прогноз' }}
       />
       <Tab.Screen
         name="Profile"
