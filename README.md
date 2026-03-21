@@ -21,6 +21,7 @@ texnostrelka2026 — это кроссплатформенное решение 
 ⚙️ Основной функционал<br>
 <br>
 В соответствии с ТЗ реализовано:<br>
+
 ✅ Обязательный функционал
 Регистрация и авторизация пользователей
 Добавление / редактирование / удаление подписок
@@ -51,10 +52,12 @@ React Native + Expo (Mobile)
 Инфраструктура
 Firebase
 REST API<br>
+
 📦 Установка и запуск
 
 Полная инструкция:<br>
-```bash https://ablaze-bench-5d2.notion.site/texnostrelka2026-bc441092deca4a7fb40ee9216dabd174?source=copy_link ```
+
+```https://ablaze-bench-5d2.notion.site/texnostrelka2026-bc441092deca4a7fb40ee9216dabd174?source=copy_link ```
 
 После запуска:<br>
 
@@ -73,5 +76,7 @@ texnostrelka2026/<br>
 ```
 
 git clone https://github.com/Pryanik-M/texnostrelka2026.git
+
 👨‍💻 Автор:<br>
+
 Команда ""
